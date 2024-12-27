@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "941351203236",
+    "project_id": "temcashback-914bc",
+    "storage_bucket": "temcashback-914bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941351203236:android:a1562d5d41fe3f2c9e5131",
+        "android_client_info": {
+          "package_name": "br.com.temcashback"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX6SOpREqzMo-VoOD8rwbmpoTycv9-rpQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
