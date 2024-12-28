@@ -21,22 +21,22 @@ class CustomDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Column(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(50.0),
                         child: Image.network(
                           authController.user.value!.photoURL ?? '',
-                          height: 80.0,
-                          width: 80.0,
+                          height: 65.0,
+                          width: 65.0,
                         ),
                       )
                     ],
                   ),
                 ),
                 Expanded(
-                  flex: 10,
+                  flex: 9,
                   child: Column(
                     children: [
                       Padding(
@@ -65,23 +65,22 @@ class CustomDrawer extends StatelessWidget {
               ],
             ),
           ),
-          //  ListTile(
-          //   leading: FaIcon(FontAwesomeIcons.building, color: Colors.black),
-          //   title: const Text('Add Company'),
-          //   onTap: () {
-          //     this.companiesRepository.createCompany();
-          //   },
-          // ),
           ListTile(
-            leading: FaIcon(FontAwesomeIcons.building, color: Colors.black),
-            title: const Text('Clubeiros'),
+            leading: Icon(Icons.apartment_sharp, color: Colors.black),
+            title: const Text(
+              'Empresas',
+              style: TextStyle(fontSize: 12),
+            ),
             onTap: () {
               Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS);
             },
           ),
           ListTile(
-            leading: FaIcon(FontAwesomeIcons.solidFilePdf, color: Colors.black),
-            title: Text('Termos de Uso e Privacidade'),
+            leading: Icon(Icons.picture_as_pdf_sharp, color: Colors.black),
+            title: Text(
+              'Termos de Uso e Privacidade',
+              style: TextStyle(fontSize: 12),
+            ),
             onTap: () async {
               // // ignore: deprecated_member_use
               // launch(
@@ -89,8 +88,11 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: FaIcon(FontAwesomeIcons.doorOpen, color: Colors.black),
-            title: Text('Sair'),
+            leading: Icon(Icons.exit_to_app_sharp, color: Colors.black),
+            title: Text(
+              'Sair',
+              style: TextStyle(fontSize: 12),
+            ),
             onTap: () async {
               await authController.signOut();
             },

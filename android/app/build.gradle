@@ -10,15 +10,6 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-     signingConfigs {
-        debug {
-            storeFile file(System.getProperty("user.home") + "/.android/temcashback.keystore")
-            storePassword "android" // Senha padrão
-            keyAlias "temcashback" // Alias padrão
-            keyPassword "android" // Senha padrão
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8

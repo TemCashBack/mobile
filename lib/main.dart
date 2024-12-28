@@ -30,19 +30,19 @@ void main() async {
   );
   Get.put(AuthController());
   Get.put(MapsAvalibleController());
-  runApp(GuiaClube());
+  runApp(TemCashBack());
 }
 
-class GuiaClube extends StatelessWidget {
-  const GuiaClube({super.key});
+class TemCashBack extends StatelessWidget {
+  const TemCashBack({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Guilheiros',
+      title: 'Cashbackers',
       theme: ThemeData(
         primarySwatch: defaultTheme,
-        secondaryHeaderColor: defaultTheme[900],
+        secondaryHeaderColor: secondTheme,
       ),
       getPages: AppPages.pages,
       home: AuthChecker(),
@@ -56,10 +56,8 @@ class AuthChecker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return authController.user.value != null
-          ? EstabelecimentosPage()
-          : LoginPage();
-    });
+    return authController.user.value != null
+        ? EstabelecimentosPage()
+        : LoginPage();
   }
 }

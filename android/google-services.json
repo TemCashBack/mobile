@@ -12,7 +12,28 @@
           "package_name": "br.com.temcashback"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "941351203236-dp70p483qekkd4gu4nrpr1ps17fjuaju.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.temcashback",
+            "certificate_hash": "31963f10bd69b46aa26e526266c1d71f2058c50e"
+          }
+        },
+        {
+          "client_id": "941351203236-p6re2rutepdopb03ojbuonno2jefgov3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.temcashback",
+            "certificate_hash": "19af1462431606a34996769ac24218d1fd4b17f5"
+          }
+        },
+        {
+          "client_id": "941351203236-0mfvcaocokufmi37gm8hn9gtch5tka9n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBX6SOpREqzMo-VoOD8rwbmpoTycv9-rpQ"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "941351203236-0mfvcaocokufmi37gm8hn9gtch5tka9n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

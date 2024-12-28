@@ -26,7 +26,7 @@ class ListaPage extends StatelessWidget {
     final companiesRepository = CompanyRepository();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lista de Guilheiros'),
+        title: Text('Lista de empresas'),
         backgroundColor: defaultTheme[800],
         titleTextStyle: const TextStyle(color: Colors.white, fontSize: 15),
       ),

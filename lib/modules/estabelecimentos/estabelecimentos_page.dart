@@ -14,8 +14,8 @@ class EstabelecimentosPage extends StatelessWidget {
       child: Scaffold(
           drawer: CustomDrawer(),
           appBar: AppBar(
-            title: Text('Guia Clube'),
-            backgroundColor: defaultTheme,
+            title: Text('Tem Cashback'),
+            backgroundColor: secondTheme,
             titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
             iconTheme: IconThemeData(
               color: Colors.white, // Cor do ícone do Drawer
@@ -24,9 +24,9 @@ class EstabelecimentosPage extends StatelessWidget {
           bottomNavigationBar: Container(
             constraints: BoxConstraints(maxHeight: 60.0),
             child: Material(
-              color: defaultTheme[800],
+              color: defaultTheme,
               child: TabBar(
-                labelColor: Colors.purple[100],
+                labelColor: secondTheme,
                 unselectedLabelColor: Colors.white,
                 tabs: [
                   Tab(
