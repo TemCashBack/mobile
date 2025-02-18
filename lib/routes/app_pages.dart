@@ -7,8 +7,14 @@ import 'package:mobile/modules/estabelecimentos/mapa/mapa_binding.dart';
 import 'package:mobile/modules/estabelecimentos/mapa/mapa_page.dart';
 import 'package:mobile/modules/home/home_binding.dart';
 import 'package:mobile/modules/home/home_page.dart';
+import 'package:mobile/modules/boas_vindas/boas_vindas_binding.dart';
+import 'package:mobile/modules/boas_vindas/boas_vindas_page.dart';
 import 'package:mobile/modules/login/login_binding.dart';
 import 'package:mobile/modules/login/login_page.dart';
+import 'package:mobile/modules/registro/registro_binding.dart';
+import 'package:mobile/modules/registro/registro_page.dart';
+import 'package:mobile/modules/selfie/selfie_binding.dart';
+import 'package:mobile/modules/selfie/selfie_page.dart';
 
 import 'app_routes.dart';
 
@@ -20,9 +26,24 @@ class AppPages {
       binding: HomeBinding(),
     ),
     GetPage(
+      name: AppRoutes.BOASVINDAS,
+      page: () => BoasVindasPage(),
+      binding: BoasVindasBinding(),
+    ),
+    GetPage(
       name: AppRoutes.LOGIN,
       page: () => LoginPage(),
-      binding: LoginBinging(),
+      binding: LoginBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.REGISTRO,
+      page: () => RegistroPage(),
+      binding: RegistroBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.SELFIE,
+      page: () => SelfiePage(),
+      binding: SelfieBinding(),
     ),
     GetPage(
       name: AppRoutes.ESTABELECIMENTOS,

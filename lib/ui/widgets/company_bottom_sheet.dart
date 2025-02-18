@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:map_launcher/map_launcher.dart';
-import 'package:mobile/controllers/MapsAvalibleController.dart';
-import 'package:mobile/controllers/UserController.dart';
-import 'package:mobile/data/models/CompanyModel.dart';
-import 'package:mobile/data/repositories/CheckinRepository.dart';
+import 'package:mobile/controllers/auth_controller.dart';
+import 'package:mobile/controllers/maps_avalible_controller.dart';
+import 'package:mobile/data/models/company_model.dart';
+import 'package:mobile/data/repositories/checkin_repository.dart';
+import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/buttons/CheckinButton.dart';
-import 'package:mobile/ui/widgets/buttons/DriveToButton.dart';
 import 'package:mobile/ui/widgets/buttons/PhoneButton.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CompanyBottomSheet {
   BuildContext context;
-  final userController = Get.put(UserController());
+  AuthController authController = Get.find<AuthController>();
   MapsAvalibleController mapsAvalibleController =
       Get.put(MapsAvalibleController());
 
@@ -29,11 +30,10 @@ class CompanyBottomSheet {
         title: Text(
           'ATENÇÃO',
           textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.black),
         ),
-        content: Text(
-          mensagem,
-          textAlign: TextAlign.center,
-        ),
+        content: Text(mensagem,
+            textAlign: TextAlign.center, style: TextStyle(color: Colors.black)),
         actions: <Widget>[
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -101,9 +101,9 @@ class CompanyBottomSheet {
                                 companyModel.nomeFantasia,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: primaryThemeColor),
                               ),
                             ),
                             Padding(
@@ -111,16 +111,32 @@ class CompanyBottomSheet {
                                   horizontal: 10, vertical: 2),
                               child: !companyModel.isOnline
                                   ? Text(
-                                      '${companyModel.endereco}, ${companyModel.numero} ')
-                                  : Text('Serviço on-line'),
+                                      '${companyModel.endereco}, ${companyModel.numero}',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: primaryThemeColor),
+                                    )
+                                  : Text('Serviço on-line',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: primaryThemeColor)),
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 2),
                               child: !companyModel.isOnline
                                   ? Text(
-                                      '${companyModel.bairro} - ${companyModel.municipio}/${companyModel.uf}')
-                                  : Text(''),
+                                      '${companyModel.bairro} - ${companyModel.municipio}/${companyModel.uf}',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: primaryThemeColor),
+                                    )
+                                  : Text(
+                                      '',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: primaryThemeColor),
+                                    ),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -172,19 +188,26 @@ class CompanyBottomSheet {
                       ? Text(
                           'Nossos Descontos',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black),
                         )
                       : Text(
                           'Nosso desconto',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black),
                         ),
                 ),
                 Expanded(
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemBuilder: (BuildContext context, int index) {
-                      return Text(companyModel.discounts[index]);
+                      return Text(
+                        companyModel.discounts[index],
+                        style: TextStyle(color: Colors.black),
+                      );
                     },
                     itemCount: companyModel.discounts.length,
                     separatorBuilder: (BuildContext context, int index) {
@@ -201,20 +224,67 @@ class CompanyBottomSheet {
                         onPressed: () =>
                             _calcDistance(id, companyModel, currentLocation),
                       ),
-                      if (!companyModel.isOnline) ...[
-                        for (var map
-                            in mapsAvalibleController.availableMaps.value ??
-                                []) ...[
-                          DriveToButton(
-                            onPressed: () => map.showMarker(
-                              coords: Coords(companyModel.geolocalizacao.lat,
-                                  companyModel.geolocalizacao.lng),
-                              title: companyModel.nomeFantasia,
-                              description: companyModel.categoria,
+                      FutureBuilder<List<AvailableMap>>(
+                        future: MapLauncher.installedMaps,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Erro ao carregar mapas'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return Center(
+                                child: Text('Nenhum mapa disponível'));
+                          }
+                          final availableMaps = snapshot.data!;
+                          return Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: availableMaps.map((map) {
+                                return GestureDetector(
+                                  onTap: () async {
+                                    await map.showMarker(
+                                      coords: Coords(
+                                          companyModel.geolocalizacao.lat,
+                                          companyModel.geolocalizacao.lng),
+                                      title: companyModel.nomeFantasia,
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(
+                                          color: primaryThemeColor, width: 1),
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(5),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SvgPicture.asset(
+                                            map.icon,
+                                            width: 25,
+                                            height: 25,
+                                            placeholderBuilder: (context) =>
+                                                CircularProgressIndicator(), // Placeholder enquanto carrega
+                                          ),
+                                          Text(
+                                            map.mapName,
+                                            style: TextStyle(fontSize: 10),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                          )
-                        ]
-                      ],
+                          );
+                        },
+                      ),
                       if (companyModel.telefones.isNotEmpty) ...[
                         PhoneButton(
                             onPressed: () => {
@@ -250,17 +320,16 @@ class CompanyBottomSheet {
         currentLocation.longitude,
         modelCompany.geolocalizacao.lat,
         modelCompany.geolocalizacao.lng);
-    if (distance > 10) {
+    if (distance > 15) {
+      //Somente a partir de 15 metros, que é possivel fazer o checkin
       mensagem = 'Você deve estar mais próximo para efetuar o check-in.';
       await showAlert(mensagem);
     } else {
-      // logica de como deve fazer o filtro e validade
-      // pode-se fazer até 3 checkin no mesmo lugar no mesmo dia
       var qtd = await checkinRepository.getCheckIns(
-          id, userController.user.uid, DateTime.now());
+          id, authController.user.value!.uid, DateTime.now());
       if (qtd < 1) {
         await checkinRepository.addCheckin(
-            id, userController.user.uid, DateTime.now());
+            id, authController.user.value!.uid, DateTime.now());
         mensagem = 'Checkin feito';
         await showAlert(mensagem);
       } else {

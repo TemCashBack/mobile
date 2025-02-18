@@ -2,7 +2,10 @@
 
 abstract class AppRoutes {
   static const HOME = '/home';
+  static const BOASVINDAS = '/boas-vindas';
   static const LOGIN = '/login';
+  static const REGISTRO = '/registro';
+  static const SELFIE = '/selfie';
   static const ESTABELECIMENTOS = '/estabelecimentos';
   static const ESTABELECIMENTOS_LISTA = '/estabelecimentos_lista';
   static const ESTABELECIMENTOS_MAPA = '/estabelecimentos_mapa';

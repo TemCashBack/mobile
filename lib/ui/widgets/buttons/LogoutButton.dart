@@ -3,14 +3,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class LogoutButton extends StatelessWidget {
-  LogoutButton({required this.onPressed});
+  const LogoutButton({super.key, required this.onPressed});
   final GestureTapCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-          backgroundColor: defaultTheme, fixedSize: Size(200, 45)),
+          backgroundColor: primaryThemeColor, fixedSize: Size(200, 45)),
+      onPressed: onPressed,
       child: Padding(
         padding: EdgeInsets.all(10.0),
         child: Row(
@@ -32,7 +33,6 @@ class LogoutButton extends StatelessWidget {
           ],
         ),
       ),
-      onPressed: onPressed,
     );
   }
 }

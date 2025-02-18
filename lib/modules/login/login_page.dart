@@ -1,97 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stepper/ressources/const.dart';
 import 'package:get/get.dart';
-import 'package:mobile/controllers/AuthController.dart';
+import 'package:mobile/modules/login/login_controller.dart';
+import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/colors.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
-  final AuthController authController = Get.put(AuthController());
+
+  final LoginController loginController = Get.put(LoginController());
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(50),
-                  child: Image.asset('lib/ui/assets/logo.png'),
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.all(40),
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'lib/ui/assets/logo.png',
+                width: MediaQuery.of(context).size.width * 0.6,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: primaryThemeColor, width: 1),
+                  ),
+                  labelStyle: TextStyle(color: secondaryThemeColor),
+                  labelText: 'E-mail',
+                  prefixIcon: Icon(
+                    Icons.email,
+                    color: primaryThemeColor,
+                  ),
+                  border: OutlineInputBorder(),
                 ),
-                SizedBox(
-                  height: 30,
-                ),
-                Text(
-                  'entrar com',
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(
-                  height: 12,
-                ),
-                ElevatedButton(
-                  onPressed: () => AuthController.instance.signInWithGoogle(),
-                  child: Text('Entrar com Google'),
-                ),
-                SizedBox(
-                  height: 100,
-                ),
-                // LogoutButton(onPressed: () async => await Authentication.signOut(context: context)),
-                // SizedBox(
-                //   height: 100,
-                // ),
-              ],
-            ),
-          ),
-          Positioned(
-            width: MediaQuery.of(context).size.width,
-            bottom: MediaQuery.of(context).size.height * 0.25,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Ao entrar, estará de acordo com nosso termo de uso e privacidade.',
-                      textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Obx(
+                () => TextField(
+                  obscureText: !loginController.isPasswordVisible.value,
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: primaryThemeColor, width: 1),
                     ),
-                    // LinkButton(
-                    //     label: 'Termos de Uso e Privacidade',
-                    //     onPressed: () => launchUrl(Uri.http(
-                    //         'http://app.guiaclube.com.br/termos%20de%20privacidade.pdf'))),
-                  ],
-                ))
-              ],
-            ),
+                    labelStyle: TextStyle(color: secondaryThemeColor),
+                    labelText: 'Senha',
+                    prefixIcon: Icon(
+                      Icons.password,
+                      color: primaryThemeColor,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        loginController.isPasswordVisible.value
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: primaryThemeColor,
+                      ),
+                      onPressed: loginController.togglePasswordVisibility,
+                    ),
+                    border: OutlineInputBorder(),
+                  ),
+                  style:
+                      TextStyle(color: const Color.fromARGB(255, 43, 43, 43)),
+                ),
+              ),
+              SizedBox(height: 20),
+              Obx(() {
+                if (loginController.isLoading.value) {
+                  return CircularProgressIndicator();
+                } else {
+                  return ElevatedButton(
+                    onPressed: () {
+                      final email = emailController.text.trim();
+                      final password = passwordController.text.trim();
+                      loginController.loginWithEmail(email, password);
+                    },
+                    child: Text(
+                      'Entrar',
+                      style: TextStyle(color: secondaryThemeColor),
+                    ),
+                  );
+                }
+              }),
+              SizedBox(height: 0),
+              TextButton(
+                onPressed: () {
+                  Get.toNamed(
+                      AppRoutes.REGISTRO); // Navegar para a tela de registro
+                },
+                child: Text('Criar uma conta',
+                    style: TextStyle(color: primaryThemeColor)),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+      // body: Padding(
+      //   padding: const EdgeInsets.all(16.0),
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: [
+      //       TextField(
+      //         controller: emailController,
+      //         decoration: InputDecoration(labelText: 'Email'),
+      //         keyboardType: TextInputType.emailAddress,
+      //       ),
+      //       SizedBox(height: 16),
+      //       TextField(
+      //         controller: passwordController,
+      //         decoration: InputDecoration(labelText: 'Senha'),
+      //         obscureText: true,
+      //       ),
+      //       SizedBox(height: 16),
+      //       Obx(() {
+      //         if (controller.isLoading.value) {
+      //           return CircularProgressIndicator();
+      //         } else {
+      //           return ElevatedButton(
+      //             onPressed: () {
+      //               final email = emailController.text.trim();
+      //               final password = passwordController.text.trim();
+      //               controller.loginWithEmail(email, password);
+      //             },
+      //             child: Text('Entrar'),
+      //           );
+      //         }
+      //       }),
+      //       SizedBox(height: 16),
+      //       TextButton(
+      //         onPressed: () {
+      //           Get.toNamed('/register'); // Navegar para a tela de registro
+      //         },
+      //         child: Text('Criar uma conta'),
+      //       ),
+      //     ],
+      //   ),
+      // ),
     );
-    // return Scaffold(
-    //   body: Center(
-    //     child: Column(
-    //       mainAxisAlignment: MainAxisAlignment.center,
-    //       children: [
-    //         Text(
-    //           'Login com Google',
-    //           style: TextStyle(fontSize: 24),
-    //         ),
-    //         SizedBox(height: 20),
-    //         ElevatedButton(
-    //           onPressed: () => AuthController.instance.signInWithGoogle(),
-    //           child: Text('Entrar com Google'),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 }

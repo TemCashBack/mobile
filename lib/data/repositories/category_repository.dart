@@ -4,10 +4,10 @@ class CategoryRepository {
   late CollectionReference categories;
 
   CategoryRepository() {
-    this.categories = FirebaseFirestore.instance.collection('categories');
+    categories = FirebaseFirestore.instance.collection('categories');
   }
 
   Stream<QuerySnapshot> getAllCategories() {
-    return this.categories.snapshots(includeMetadataChanges: true);
+    return categories.snapshots(includeMetadataChanges: true);
   }
 }

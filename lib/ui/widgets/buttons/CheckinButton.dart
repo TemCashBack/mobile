@@ -3,14 +3,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class CheckinButton extends StatelessWidget {
-  CheckinButton({required this.onPressed});
+  const CheckinButton({super.key, required this.onPressed});
   final GestureTapCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-          backgroundColor: defaultTheme, minimumSize: Size.fromHeight(40)),
+          backgroundColor: primaryThemeColor, minimumSize: Size.fromHeight(40)),
+      onPressed: onPressed,
       child: Padding(
         padding: EdgeInsets.all(10.0),
         child: Row(
@@ -32,7 +33,6 @@ class CheckinButton extends StatelessWidget {
           ],
         ),
       ),
-      onPressed: onPressed,
     );
   }
 }

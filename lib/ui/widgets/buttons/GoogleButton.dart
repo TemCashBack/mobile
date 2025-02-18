@@ -3,14 +3,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class GoogleButton extends StatelessWidget {
-  GoogleButton({required this.onPressed});
+  const GoogleButton({super.key, required this.onPressed});
   final GestureTapCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-          backgroundColor: defaultTheme, fixedSize: Size(200, 45)),
+          backgroundColor: primaryThemeColor, fixedSize: Size(200, 45)),
+      onPressed: onPressed,
       child: Padding(
         padding: EdgeInsets.all(10.0),
         child: Row(
@@ -22,17 +23,16 @@ class GoogleButton extends StatelessWidget {
               size: 18,
             ),
             SizedBox(
-              width: 10.0,
+              width: 5.0,
             ),
             Text(
-              "GOOGLE",
+              "Google",
               maxLines: 1,
               style: TextStyle(color: Colors.white),
             ),
           ],
         ),
       ),
-      onPressed: onPressed,
     );
   }
 }

@@ -11,9 +11,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:mobile/controllers/LocationController.dart';
-import 'package:mobile/data/models/CompanyModel.dart';
-import 'package:mobile/data/repositories/CompanyRepository.dart';
+import 'package:mobile/controllers/location_controller.dart';
+import 'package:mobile/data/models/company_model.dart';
+import 'package:mobile/data/repositories/company_repository.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 
@@ -26,9 +26,8 @@ class MapaPage extends StatelessWidget {
   MapaPage({super.key});
 
   Future<BitmapDescriptor> _loadCustomIcon() async {
-    //TODO: trocar para a imagem oficial
     return await BitmapDescriptor.asset(
-        ImageConfiguration(size: Size(20, 26)), 'lib/ui/assets/logo-round.png');
+        ImageConfiguration(size: Size(20, 26)), 'lib/ui/assets/gps.png');
   }
 
   @override
@@ -38,11 +37,6 @@ class MapaPage extends StatelessWidget {
     CustomInfoWindowController customInfoWindowController =
         CustomInfoWindowController();
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Mapa de Guilheiros'),
-        backgroundColor: defaultTheme[800],
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 15),
-      ),
       body: FutureBuilder(
         future: _loadCustomIcon(), // Carregar o ícone customizado
         builder: (context, snapShotIcon) {
@@ -62,6 +56,7 @@ class MapaPage extends StatelessWidget {
                     String json = jsonEncode(doc.data());
                     Map<String, dynamic> docMap = jsonDecode(json);
                     var entityCompany = CompanyModel.fromJson(docMap);
+                    print("Empresas: ${entityCompany.nomeFantasia}");
                     markerId = MarkerId(doc.id);
                     marker = Marker(
                       icon: snapShotIcon.data ?? BitmapDescriptor.defaultMarker,
@@ -79,7 +74,7 @@ class MapaPage extends StatelessWidget {
                               Expanded(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: defaultTheme,
+                                    color: primaryThemeColor,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   width: double.infinity,
@@ -110,7 +105,7 @@ class MapaPage extends StatelessWidget {
                               Triangle.isosceles(
                                 edge: Edge.BOTTOM,
                                 child: Container(
-                                  color: defaultTheme,
+                                  color: primaryThemeColor,
                                   width: 20.0,
                                   height: 10.0,
                                 ),
@@ -180,7 +175,7 @@ class MapaPage extends StatelessWidget {
                               width: MediaQuery.of(context).size.width,
                               child: Container(
                                 padding: EdgeInsets.all(5),
-                                color: defaultTheme,
+                                color: primaryThemeColor,
                                 child: TypeAheadField(
                                   builder: (context, controller, focusNode) {
                                     return TextField(

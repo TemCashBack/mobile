@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mobile/data/models/CompanyModel.dart';
+import 'package:mobile/data/models/company_model.dart';
 
 class CompanyRepository {
   late CollectionReference companies;

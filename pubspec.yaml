@@ -2,7 +2,7 @@ name: mobile
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -37,7 +37,7 @@ dependencies:
   get: ^4.6.6
   font_awesome_flutter: ^10.8.0
   firebase_core: ^3.8.1
-  cloud_firestore: ^5.5.1
+  cloud_firestore: ^5.6.2
   firebase_core_web: ^2.18.2
   flutter_masked_text2: ^0.9.1
   firebase_auth: ^5.3.4
@@ -52,7 +52,22 @@ dependencies:
   google_sign_in: ^6.2.2
   map_launcher: ^3.5.0
   flutter_launcher_icons: ^0.14.2
-  
+  flutter_local_notifications: ^18.0.1
+  firebase_app_installations: ^0.3.1+7
+  firebase_messaging: ^15.2.1
+  firebase_in_app_messaging: ^0.8.1+2
+  flutter_stepper: ^0.0.1
+  http: ^1.2.2
+  location: ^7.0.1
+  flutter_svg: ^2.0.17
+  firebase_storage: ^12.4.0
+  image_cropper: ^8.1.0
+  path: ^1.9.0
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.1
+  camera: ^0.11.0+2
+  path_provider: ^2.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,13 +83,12 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter_icons:
-  image_path: 'lib/ui/assets/ic_launcher.png'
+  image_path: "lib/ui/assets/ic_launcher.png"
   android: true
   ios: true
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
