@@ -14,8 +14,26 @@ class EstabelecimentosPage extends StatelessWidget {
       child: Scaffold(
           drawer: CustomDrawer(),
           appBar: AppBar(
-            title: Text('Tem Cashback'),
-            backgroundColor: primaryThemeColor,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                Image.asset(
+                  'lib/ui/assets/logo.png',
+                  height: 40,
+                ),
+              ],
+            ),
+            actions: [
+              Builder(
+                builder: (context) => IconButton(
+                  icon: Icon(Icons.menu), // Ícone de notificações
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              )
+            ],
+            backgroundColor: Colors.black,
             titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
             iconTheme: IconThemeData(
               color: Colors.white, // Cor do ícone do Drawer
@@ -24,9 +42,10 @@ class EstabelecimentosPage extends StatelessWidget {
           bottomNavigationBar: Container(
             constraints: BoxConstraints(maxHeight: 60.0),
             child: Material(
-              color: primaryThemeColor[800],
+              color: Colors.black,
               child: TabBar(
-                labelColor: Colors.purple[100],
+                indicatorColor: Colors.white,
+                labelColor: secondaryThemeColor,
                 unselectedLabelColor: Colors.white,
                 tabs: [
                   Tab(

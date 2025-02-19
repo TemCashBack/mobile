@@ -27,15 +27,19 @@ class ListaPage extends StatelessWidget {
     return Column(
       children: [
         Container(
-          decoration: BoxDecoration(color: primaryThemeColor),
+          decoration: BoxDecoration(color: Colors.black),
           padding: EdgeInsets.all(5),
           child: TextField(
+            cursorColor: Colors.grey,
             controller: searchController,
             onChanged: (text) {
               controller.term.value = text;
               controller.category.value = '';
             },
             decoration: InputDecoration(
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black, width: 1),
+              ),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(),

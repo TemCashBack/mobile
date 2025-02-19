@@ -25,7 +25,7 @@ class RegisterButton extends StatelessWidget {
           children: [
             FaIcon(
               FontAwesomeIcons.userPen,
-              color: primaryThemeColor,
+              color: secondaryThemeColor,
               size: 18,
             ),
             SizedBox(
@@ -34,7 +34,7 @@ class RegisterButton extends StatelessWidget {
             Text(
               "Não tenho cadastro",
               maxLines: 1,
-              style: TextStyle(color: primaryThemeColor, fontSize: 12),
+              style: TextStyle(color: secondaryThemeColor, fontSize: 12),
             ),
           ],
         ),

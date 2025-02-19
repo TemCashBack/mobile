@@ -11,8 +11,6 @@ class LoginController extends GetxController {
     isLoading.value = true;
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
-      Get.snackbar('Sucesso', 'Login realizado com sucesso!');
-      // Navegar para a página inicial após o login
       Get.offAllNamed('/home');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {

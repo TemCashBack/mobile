@@ -99,6 +99,7 @@ flutter:
     - lib/ui/assets/logo-round.png
     - lib/ui/assets/logo.png
     - lib/ui/assets/logo-white.png
+    - lib/ui/assets/gps.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

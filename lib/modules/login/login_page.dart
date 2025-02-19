@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_stepper/ressources/const.dart';
 import 'package:get/get.dart';
 import 'package:mobile/modules/login/login_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
@@ -19,7 +18,7 @@ class LoginPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(40),
-          color: Colors.white,
+          color: Colors.black,
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
           child: Column(
@@ -34,6 +33,7 @@ class LoginPage extends StatelessWidget {
                 height: 20,
               ),
               TextField(
+                cursorColor: Colors.grey,
                 controller: emailController,
                 decoration: InputDecoration(
                   focusedBorder: OutlineInputBorder(
@@ -54,6 +54,7 @@ class LoginPage extends StatelessWidget {
               ),
               Obx(
                 () => TextField(
+                  cursorColor: Colors.grey,
                   obscureText: !loginController.isPasswordVisible.value,
                   controller: passwordController,
                   decoration: InputDecoration(
@@ -94,8 +95,8 @@ class LoginPage extends StatelessWidget {
                       loginController.loginWithEmail(email, password);
                     },
                     child: Text(
-                      'Entrar',
-                      style: TextStyle(color: secondaryThemeColor),
+                      'ENTRAR',
+                      style: TextStyle(color: primaryThemeColor, fontSize: 16),
                     ),
                   );
                 }
@@ -107,7 +108,7 @@ class LoginPage extends StatelessWidget {
                       AppRoutes.REGISTRO); // Navegar para a tela de registro
                 },
                 child: Text('Criar uma conta',
-                    style: TextStyle(color: primaryThemeColor)),
+                    style: TextStyle(color: secondaryThemeColor)),
               ),
             ],
           ),

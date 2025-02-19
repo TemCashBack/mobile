@@ -74,7 +74,7 @@ class MapaPage extends StatelessWidget {
                               Expanded(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: primaryThemeColor,
+                                    color: Colors.black,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   width: double.infinity,
@@ -175,14 +175,19 @@ class MapaPage extends StatelessWidget {
                               width: MediaQuery.of(context).size.width,
                               child: Container(
                                 padding: EdgeInsets.all(5),
-                                color: primaryThemeColor,
+                                color: Colors.black,
                                 child: TypeAheadField(
                                   builder: (context, controller, focusNode) {
                                     return TextField(
+                                      cursorColor: Colors.grey,
                                       controller: controller,
                                       focusNode: focusNode,
                                       obscureText: false,
                                       decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              color: Colors.black, width: 1),
+                                        ),
                                         filled: true,
                                         fillColor: Colors.white,
                                         border: OutlineInputBorder(),
