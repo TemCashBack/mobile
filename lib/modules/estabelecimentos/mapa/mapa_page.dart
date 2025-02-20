@@ -16,6 +16,7 @@ import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class MapaPage extends StatelessWidget {
   final companiesRepository = CompanyRepository();
@@ -41,7 +42,7 @@ class MapaPage extends StatelessWidget {
         future: _loadCustomIcon(), // Carregar o ícone customizado
         builder: (context, snapShotIcon) {
           if (snapShotIcon.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: ProgressIndicatorCustom());
           } else if (snapShotIcon.hasError) {
             return Center(child: Text('Erro ao carregar o ícone'));
           } else if (snapShotIcon.hasData) {
@@ -123,7 +124,7 @@ class MapaPage extends StatelessWidget {
                     empresas = snapshot.data!.docs;
                     if (locationController.currentPosition.value == null) {
                       return Center(
-                          child: CircularProgressIndicator()); // Carregando
+                          child: ProgressIndicatorCustom()); // Carregando
                     } else {
                       return Stack(
                         fit: StackFit.expand,
@@ -249,7 +250,7 @@ class MapaPage extends StatelessWidget {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8),
-                      child: CircularProgressIndicator(),
+                      child: ProgressIndicatorCustom(),
                     ),
                   );
                 }

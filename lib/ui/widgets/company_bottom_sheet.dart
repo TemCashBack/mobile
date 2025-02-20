@@ -11,6 +11,7 @@ import 'package:mobile/data/repositories/checkin_repository.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/buttons/CheckinButton.dart';
 import 'package:mobile/ui/widgets/buttons/PhoneButton.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CompanyBottomSheet {
@@ -33,7 +34,8 @@ class CompanyBottomSheet {
           style: TextStyle(color: Colors.black),
         ),
         content: Text(mensagem,
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.black)),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black, fontSize: 16)),
         actions: <Widget>[
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -43,7 +45,10 @@ class CompanyBottomSheet {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, 'OK'),
-                    child: const Text('OK'),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                 ],
               )
@@ -62,7 +67,7 @@ class CompanyBottomSheet {
         context: context,
         builder: (builder) {
           return Container(
-            height: MediaQuery.of(context).size.height * 0.80,
+            height: MediaQuery.of(context).size.height * 0.40,
             padding: EdgeInsets.all(20),
             color: Colors.transparent,
             child: Column(
@@ -181,40 +186,6 @@ class CompanyBottomSheet {
                     ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  width: MediaQuery.of(context).size.width,
-                  child: companyModel.discounts.length > 1
-                      ? Text(
-                          'Nossos Descontos',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black),
-                        )
-                      : Text(
-                          'Nosso desconto',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black),
-                        ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Text(
-                        companyModel.discounts[index],
-                        style: TextStyle(color: Colors.black),
-                      );
-                    },
-                    itemCount: companyModel.discounts.length,
-                    separatorBuilder: (BuildContext context, int index) {
-                      return Divider();
-                    },
-                  ),
-                ),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -224,12 +195,19 @@ class CompanyBottomSheet {
                         onPressed: () =>
                             _calcDistance(id, companyModel, currentLocation),
                       ),
+                      if (companyModel.telefones.isNotEmpty) ...[
+                        PhoneButton(
+                            onPressed: () => {
+                                  launchUrl(Uri.http(
+                                      'tel://${companyModel.telefones[0]}'))
+                                })
+                      ],
                       FutureBuilder<List<AvailableMap>>(
                         future: MapLauncher.installedMaps,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return Center(child: ProgressIndicatorCustom());
                           } else if (snapshot.hasError) {
                             return Center(
                                 child: Text('Erro ao carregar mapas'));
@@ -269,7 +247,7 @@ class CompanyBottomSheet {
                                             width: 25,
                                             height: 25,
                                             placeholderBuilder: (context) =>
-                                                CircularProgressIndicator(), // Placeholder enquanto carrega
+                                                ProgressIndicatorCustom(), // Placeholder enquanto carrega
                                           ),
                                           Text(
                                             map.mapName,
@@ -285,13 +263,6 @@ class CompanyBottomSheet {
                           );
                         },
                       ),
-                      if (companyModel.telefones.isNotEmpty) ...[
-                        PhoneButton(
-                            onPressed: () => {
-                                  launchUrl(Uri.http(
-                                      'tel://${companyModel.telefones[0]}'))
-                                })
-                      ]
                     ],
                   ),
                 ),
@@ -321,7 +292,6 @@ class CompanyBottomSheet {
         modelCompany.geolocalizacao.lat,
         modelCompany.geolocalizacao.lng);
     if (distance > 15) {
-      //Somente a partir de 15 metros, que é possivel fazer o checkin
       mensagem = 'Você deve estar mais próximo para efetuar o check-in.';
       await showAlert(mensagem);
     } else {

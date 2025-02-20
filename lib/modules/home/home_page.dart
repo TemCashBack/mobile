@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,7 @@ import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/checkin_repository.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/drawer_custom.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 // ignore: must_be_immutable
 class HomePage extends StatelessWidget {
@@ -156,7 +158,7 @@ class HomePage extends StatelessWidget {
                         return Center(
                           child: Padding(
                             padding: const EdgeInsets.all(8),
-                            child: CircularProgressIndicator(),
+                            child: ProgressIndicatorCustom(),
                           ),
                         );
                       } else {

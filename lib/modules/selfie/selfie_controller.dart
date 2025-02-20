@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 import 'package:path/path.dart';
 
 class SelfieController extends GetxController {
@@ -83,7 +84,7 @@ class SelfieController extends GetxController {
     try {
       Get.dialog(
         Center(
-          child: CircularProgressIndicator(),
+          child: ProgressIndicatorCustom(),
         ),
         barrierDismissible: false,
       );

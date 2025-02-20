@@ -11,6 +11,7 @@ import 'package:mobile/data/repositories/company_repository.dart';
 import 'package:mobile/modules/estabelecimentos/lista/lista_controller.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class ListaPage extends StatelessWidget {
   const ListaPage({super.key});
@@ -56,9 +57,8 @@ class ListaPage extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: CircularProgressIndicator(),
-                  ),
+                      padding: const EdgeInsets.all(8),
+                      child: ProgressIndicatorCustom()),
                 );
               } else {
                 categories = snapshot.data!.docs;
@@ -108,7 +108,7 @@ class ListaPage extends StatelessWidget {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8),
-                      child: CircularProgressIndicator(),
+                      child: ProgressIndicatorCustom(),
                     ),
                   );
                 } else {

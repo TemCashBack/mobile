@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class RegistroController extends GetxController {
   var currentStep = 0.obs;
@@ -173,7 +174,7 @@ class RegistroController extends GetxController {
   void completeRegistrations() {
     Get.dialog(
       Center(
-        child: CircularProgressIndicator(),
+        child: ProgressIndicatorCustom(),
       ),
       barrierDismissible: true,
     );
@@ -183,7 +184,7 @@ class RegistroController extends GetxController {
     try {
       Get.dialog(
         Center(
-          child: CircularProgressIndicator(),
+          child: ProgressIndicatorCustom(),
         ),
         barrierDismissible: false,
       );

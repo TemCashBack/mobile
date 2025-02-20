@@ -1,9 +1,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mobile/modules/selfie/selfie_controller.dart';
 import 'package:mobile/ui/theme/colors.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class SelfiePage extends StatelessWidget {
   SelfiePage({super.key});
@@ -25,7 +25,7 @@ class SelfiePage extends StatelessWidget {
         () {
           if (!controller.isCameraInitialized.value ||
               controller.cameraController == null) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: ProgressIndicatorCustom());
           }
           return Stack(
             children: [

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/modules/home/home_page.dart';
 import 'package:mobile/modules/login/login_page.dart';
+import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class SplashScreenPage extends StatelessWidget {
   const SplashScreenPage({super.key});
@@ -22,6 +23,7 @@ class SplashScreenPage extends StatelessWidget {
     });
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -31,7 +33,7 @@ class SplashScreenPage extends StatelessWidget {
               height: 100,
             ),
             SizedBox(height: 20),
-            CircularProgressIndicator(),
+            ProgressIndicatorCustom(),
             SizedBox(height: 20),
             Text(
               'Carregando...',
