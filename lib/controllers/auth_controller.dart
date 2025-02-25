@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mobile/controllers/firebase_message_controller.dart';
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/modules/boas_vindas/boas_vindas_page.dart';
@@ -8,6 +9,9 @@ import 'package:mobile/modules/home/home_page.dart';
 
 class AuthController extends GetxController {
   AuthController({required this.customerRepository});
+
+  final FirebaseMessagingController firebaseMessagingController =
+      Get.find<FirebaseMessagingController>();
 
   final CustomerRepository customerRepository;
 
@@ -27,8 +31,16 @@ class AuthController extends GetxController {
     ever(user, (User? user) {
       if (user != null) {
         getCustomerData(user.uid);
+        updateFCMToken(user);
       }
     });
+  }
+
+  Future<void> updateFCMToken(User user) async {
+    String? token = await firebaseMessagingController.getToken();
+    if (token != null) {
+      await customerRepository.updateFCMToken(user.uid, token);
+    }
   }
 
   void _setInitialScreen(User? user) {

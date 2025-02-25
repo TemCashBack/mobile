@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:mobile/controllers/firebase_in_app_message_controller.dart';
+import 'package:mobile/controllers/firebase_message_controller.dart';
 import 'package:mobile/initial_binding.dart';
 import 'package:mobile/modules/splash_screen/splash_screen_page.dart';
 import 'package:mobile/routes/app_pages.dart';
@@ -25,6 +27,9 @@ void main() async {
         appId: "1:941351203236:web:77e84c5009a095dc9e5131",
         measurementId: "G-L29TEDX8QD"),
   );
+
+  Get.put(FirebaseMessagingController());
+  Get.put(FirebaseInAppMessagingController());
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

@@ -1,35 +1,46 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
-class FirebaseMessageController extends GetxController {
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+class FirebaseMessagingController extends GetxController {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   @override
   void onInit() {
     super.onInit();
-    _initializeFCM();
+    _initNotifications();
   }
 
-  Future<void> _initializeFCM() async {
-    // Solicita permissão para notificações
-    await _messaging.requestPermission();
+  Future<String?> getToken() async {
+    String? token = await messaging.getToken();
+    return token;
+  }
 
-    // Obtém o token do dispositivo
-    String? token = await _messaging.getToken();
-    print("Token FCM: $token");
+  void _initNotifications() async {
+    await messaging.subscribeToTopic("todos");
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-    // Configura listeners para mensagens recebidas
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print("Permissão concedida para notificações!");
+    }
+
+    String? token = await messaging.getToken();
+    print("FCM Token: $token");
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Mensagem recebida: ${message.notification?.title}');
-      Get.snackbar(
-        message.notification?.title ?? "Notificação",
-        message.notification?.body ?? "Sem conteúdo",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print("Nova notificação!");
+      print("Título: ${message.notification?.title}");
+      print("Mensagem: ${message.notification?.body}");
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Usuário clicou na notificação: ${message.notification?.title}');
-    });
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
   }
+}
+
+// Handler para background notifications
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  print("Notificação recebida em background: ${message.notification?.title}");
 }
