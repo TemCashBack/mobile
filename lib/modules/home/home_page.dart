@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/controllers/nivel_controller.dart';
 import 'package:mobile/data/models/checkin_model.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/checkin_repository.dart';
+import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/drawer_custom.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
@@ -131,6 +133,38 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                     ),
+                    Positioned(
+                      bottom: -60,
+                      right: 10,
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      height: 80,
+                      child: Container(
+                        child: Column(
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(
+                                Icons.business,
+                                color: primaryThemeColor,
+                              ),
+                              onPressed: () {
+                                Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: primaryThemeColor,
+                                backgroundColor: secondaryThemeColor,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10), // Rounded corners
+                                ),
+                              ),
+                              label: SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -196,7 +230,6 @@ class HomePage extends StatelessWidget {
                               String checkInFormattedDate =
                                   DateFormat('dd/MM/yyyy')
                                       .format(checkInparsedDate);
-
                               return Column(
                                 children: [
                                   Row(
