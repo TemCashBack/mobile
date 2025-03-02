@@ -49,20 +49,23 @@ class EstabelecimentosPage extends StatelessWidget {
                 unselectedLabelColor: Colors.white,
                 tabs: [
                   Tab(
+                    text: 'Mapa',
+                    icon: Icon(Icons.map_outlined),
+                  ),
+                  Tab(
                     text: 'Lista',
                     icon: Icon(Icons.list),
                   ),
-                  Tab(
-                    text: 'Mapa',
-                    icon: Icon(Icons.map_outlined),
-                  )
                 ],
               ),
             ),
           ),
           body: TabBarView(
             physics: NeverScrollableScrollPhysics(),
-            children: [ListaPage(), MapaPage()],
+            children: [
+              MapaPage(),
+              ListaPage(),
+            ],
           )),
     );
   }

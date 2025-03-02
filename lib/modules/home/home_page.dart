@@ -51,6 +51,20 @@ class HomePage extends StatelessWidget {
           color: Colors.white, // Cor do ícone do Drawer
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS);
+        },
+        backgroundColor: secondaryThemeColor,
+        label: Text(
+          'Informar compras',
+          style: TextStyle(color: Colors.black),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: primaryThemeColor,
+        ),
+      ),
       body: Stack(
         clipBehavior:
             Clip.none, // Permite elementos saírem dos limites do Stack
@@ -105,12 +119,11 @@ class HomePage extends StatelessWidget {
                                   text: TextSpan(
                                     children: [
                                       TextSpan(
-                                        text: 'R\$ ', // Prefixo estilizado
+                                        text: 'R\$ ',
                                         style: TextStyle(fontSize: 18),
                                       ),
                                       TextSpan(
-                                        text:
-                                            "100.000.000,00", // Texto principal
+                                        text: "100.000.000,00",
                                         style: TextStyle(
                                             foreground: Paint()
                                               ..shader = LinearGradient(
@@ -128,38 +141,6 @@ class HomePage extends StatelessWidget {
                                   ),
                                 )),
                               ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: -60,
-                      right: 10,
-                      width: MediaQuery.of(context).size.width * 0.2,
-                      height: 80,
-                      child: Container(
-                        child: Column(
-                          children: [
-                            ElevatedButton.icon(
-                              icon: Icon(
-                                Icons.business,
-                                color: primaryThemeColor,
-                              ),
-                              onPressed: () {
-                                Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: primaryThemeColor,
-                                backgroundColor: secondaryThemeColor,
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      10), // Rounded corners
-                                ),
-                              ),
-                              label: SizedBox.shrink(),
                             ),
                           ],
                         ),
