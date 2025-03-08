@@ -31,13 +31,16 @@ class CashbackController extends GetxController {
     downloadUrl = await _uploadImageToFirebase(imagePath.value);
 
     CashbackModel cashbackModel = CashbackModel(
-        companyId: companyId.value,
-        customerId: customerController.customerId.value,
-        valor: valorCompra.value,
-        cashback: cashback.value,
-        dateTime: Timestamp.fromDate(dateTime),
-        date: onlyDate,
-        imagem: downloadUrl);
+      companyId: companyId.value,
+      customerId: customerController.customerId.value,
+      valor: valorCompra.value,
+      cashback: cashback.value,
+      dateTime: Timestamp.fromDate(dateTime),
+      date: onlyDate,
+      imagem: downloadUrl,
+      aprovado: false,
+      utilizado: false,
+    );
     cashbackRepository.save(cashbackModel);
   }
 

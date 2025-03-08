@@ -100,16 +100,18 @@ class HomePage extends StatelessWidget {
                     Positioned(
                       bottom: -30,
                       left: 10,
-                      width: MediaQuery.of(context).size.width * 0.7,
+                      width: MediaQuery.of(context).size.width * 0.6,
                       height: 100,
                       child: Container(
-                        padding: EdgeInsets.all(20),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                         decoration: BoxDecoration(
                           color: secondaryThemeColor, // Cor de fundo
                           borderRadius: BorderRadius.circular(
                               20), // Define o raio da borda
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
@@ -123,9 +125,6 @@ class HomePage extends StatelessWidget {
                                   ),
                                 ),
                               ],
-                            ),
-                            SizedBox(
-                              height: 2,
                             ),
                             Row(
                               children: [
@@ -179,6 +178,53 @@ class HomePage extends StatelessWidget {
                                 ),
                               ],
                             ),
+                            StreamBuilder<double>(
+                              stream: cashbackRepository
+                                  .getRealTimeCashbackBalanceUsed(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: ProgressIndicatorCustom(),
+                                    ),
+                                  );
+                                } else {
+                                  moneyController2
+                                      .updateValue(snapshot.data ?? 0);
+                                  var totalCashbackUsed = moneyController2.text;
+                                  return RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                            text: 'Utilizado: ',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 10)),
+                                        TextSpan(
+                                          text: 'R\$ ',
+                                        ),
+                                        TextSpan(
+                                          text: totalCashbackUsed,
+                                          style: TextStyle(
+                                              foreground: Paint()
+                                                ..shader = LinearGradient(
+                                                  colors: [
+                                                    primaryThemeColor,
+                                                    Colors.black,
+                                                    primaryThemeColor,
+                                                  ],
+                                                ).createShader(Rect.fromLTWH(
+                                                    50, 0, 400, 50)),
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                            )
                           ],
                         ),
                       ),
@@ -267,7 +313,32 @@ class HomePage extends StatelessWidget {
                                     color: iconColorTheme,
                                     size: 20,
                                   ),
-                                  trailing: Text(cashbackFormattedDateHour),
+                                  trailing: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: cashbackFormattedDateHour,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12),
+                                        ),
+                                        if (cashbackModel.aprovado)
+                                          TextSpan(
+                                            text: '\n\nAprovado',
+                                            style: TextStyle(
+                                                color: primaryThemeColor,
+                                                fontSize: 12),
+                                          )
+                                        else
+                                          TextSpan(
+                                            text: '\n\nNão aprovado',
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 12),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                   title: Text(
                                     companyModel.nomeFantasia,
                                     style: TextStyle(fontSize: 16),

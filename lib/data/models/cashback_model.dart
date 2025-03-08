@@ -8,6 +8,8 @@ class CashbackModel {
   Timestamp dateTime;
   String date;
   String imagem;
+  bool aprovado;
+  bool utilizado;
 
   CashbackModel(
       {required this.companyId,
@@ -16,17 +18,21 @@ class CashbackModel {
       required this.cashback,
       required this.dateTime,
       required this.date,
-      required this.imagem});
+      required this.imagem,
+      required this.aprovado,
+      required this.utilizado});
 
   factory CashbackModel.fromJson(Map<String, dynamic> json) {
     return CashbackModel(
         companyId: json['companyId'],
         customerId: json['customerId'],
-        valor: json['valor'],
-        cashback: json['cashback'],
+        valor: (json['valor'] as num).toDouble(),
+        cashback: (json['cashback'] as num).toDouble(),
         dateTime: json['dateTime'],
         date: json['date'],
-        imagem: json['imagem']);
+        imagem: json['imagem'],
+        aprovado: json['aprovado'],
+        utilizado: json['utilizado']);
   }
 
   Map<String, dynamic> toJson() {
@@ -38,6 +44,8 @@ class CashbackModel {
     data['dateTime'] = dateTime;
     data['date'] = date;
     data['imagem'] = imagem;
+    data['aprovado'] = aprovado;
+    data['utilizado'] = utilizado;
     return data;
   }
 }

@@ -18,20 +18,26 @@ class CashbackRepository {
     cashbackColletion.add(cashbackModel.toJson());
   }
 
-  Stream<QuerySnapshot> getCashbackBalance() {
-    if (authController.user.value != null) {
-      var checkins = cashbackColletion
-          .where('customerId', isEqualTo: authController.user.value!.uid)
-          .snapshots();
-      return checkins;
-    } else {
-      return Stream.empty();
-    }
-  }
-
   Stream<double> getRealTimeCashbackBalance() {
     return cashbackColletion
         .where('customerId', isEqualTo: authController.user.value!.uid)
+        .where('aprovado', isEqualTo: true)
+        .where('utilizado', isEqualTo: false)
+        .snapshots()
+        .map((QuerySnapshot snapshot) {
+      double total = 0.0;
+      for (var doc in snapshot.docs) {
+        total += doc['cashback']?.toDouble() ?? 0.0;
+      }
+      return total;
+    });
+  }
+
+  Stream<double> getRealTimeCashbackBalanceUsed() {
+    return cashbackColletion
+        .where('customerId', isEqualTo: authController.user.value!.uid)
+        .where('aprovado', isEqualTo: true)
+        .where('utilizado', isEqualTo: true)
         .snapshots()
         .map((QuerySnapshot snapshot) {
       double total = 0.0;
