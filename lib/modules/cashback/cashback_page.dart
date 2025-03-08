@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:get/get.dart';
@@ -49,7 +51,6 @@ class CashbackPage extends StatelessWidget {
             currentStep: controller.currentStep.value,
             onStepContinue: () {
               if (controller.currentStep.value == 2) {
-                //Get.toNamed(AppRoutes.HOME);
                 controller.saveCashBack();
               } else {
                 controller.nextStep();
@@ -101,8 +102,9 @@ class CashbackPage extends StatelessWidget {
                 title: Text('Tirar Foto do Comprovante'),
                 content: Column(
                   children: [
-                    Obx(() => controller.imageFile.value != null
-                        ? Image.file(controller.imageFile.value!)
+                    // ignore: unnecessary_null_comparison
+                    Obx(() => controller.imagePath.value != null
+                        ? Image.file(File(controller.imagePath.value))
                         : Text('Nenhuma imagem selecionada')),
                     SizedBox(height: 10),
                     ElevatedButton(

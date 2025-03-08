@@ -15,7 +15,7 @@ class SelfieController extends GetxController {
   RxBool isCameraInitialized = false.obs;
   List<CameraDescription>? cameras;
   RxDouble cameraAspectRatio = 1.0.obs;
-  RxBool isFrontCamera = true.obs; // Para saber se a câmera ativa é a frontal
+  RxBool isFrontCamera = true.obs;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   late CameraDescription selectedCamera;
