@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:mobile/modules/cashback/cashback_binding.dart';
+import 'package:mobile/modules/cashback/cashback_page.dart';
 import 'package:mobile/modules/estabelecimentos/estabelecimentos_binding.dart';
 import 'package:mobile/modules/estabelecimentos/estabelecimentos_page.dart';
 import 'package:mobile/modules/estabelecimentos/lista/lista_binding.dart';
@@ -59,6 +61,11 @@ class AppPages {
       name: AppRoutes.ESTABELECIMENTOS_LISTA,
       page: () => ListaPage(),
       binding: ListaBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.CASHBACK,
+      page: () => CashbackPage(),
+      binding: CashbackBinding(),
     ),
   ];
 }

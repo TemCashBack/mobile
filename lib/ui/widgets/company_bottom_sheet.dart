@@ -7,10 +7,11 @@ import 'package:map_launcher/map_launcher.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/controllers/maps_avalible_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
-import 'package:mobile/data/repositories/checkin_repository.dart';
+import 'package:mobile/modules/cashback/cashback_controller.dart';
+import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
-import 'package:mobile/ui/widgets/buttons/CheckinButton.dart';
 import 'package:mobile/ui/widgets/buttons/PhoneButton.dart';
+import 'package:mobile/ui/widgets/buttons/informar_compra_button.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,6 +24,8 @@ class CompanyBottomSheet {
   CompanyBottomSheet({required this.context});
 
   double distance = 0.0;
+
+  CashbackController cashbackController = Get.put(CashbackController());
 
   showAlert(String mensagem) {
     showDialog(
@@ -191,7 +194,7 @@ class CompanyBottomSheet {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      CheckinButton(
+                      InformarCompraButton(
                         onPressed: () =>
                             _calcDistance(id, companyModel, currentLocation),
                       ),
@@ -285,27 +288,17 @@ class CompanyBottomSheet {
   void _calcDistance(
       String id, CompanyModel modelCompany, Position currentLocation) async {
     String mensagem;
-    CheckinRepository checkinRepository = CheckinRepository();
     distance = Geolocator.distanceBetween(
         currentLocation.latitude,
         currentLocation.longitude,
         modelCompany.geolocalizacao.lat,
         modelCompany.geolocalizacao.lng);
     if (distance > 15) {
-      mensagem = 'Você deve estar mais próximo para efetuar o check-in.';
+      mensagem = 'Você deve estar mais próximo para efetuar a compra.';
       await showAlert(mensagem);
     } else {
-      var qtd = await checkinRepository.getCheckIns(
-          id, authController.user.value!.uid, DateTime.now());
-      if (qtd < 1) {
-        await checkinRepository.addCheckin(
-            id, authController.user.value!.uid, DateTime.now());
-        mensagem = 'Checkin feito';
-        await showAlert(mensagem);
-      } else {
-        mensagem = 'Você já fez checkin hoje!';
-        await showAlert(mensagem);
-      }
+      cashbackController.setCompanyId(id);
+      Get.toNamed(AppRoutes.CASHBACK);
     }
   }
 

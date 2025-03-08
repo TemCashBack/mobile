@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mobile/controllers/customer_controller.dart';
 import 'package:mobile/controllers/firebase_message_controller.dart';
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
@@ -12,6 +13,8 @@ class AuthController extends GetxController {
 
   final FirebaseMessagingController firebaseMessagingController =
       Get.find<FirebaseMessagingController>();
+
+  final CustomerController customerController = Get.find<CustomerController>();
 
   final CustomerRepository customerRepository;
 
@@ -57,6 +60,7 @@ class AuthController extends GetxController {
       if (customerDoc.exists) {
         customerData.value =
             CustomerModel.fromJson(customerDoc.data() as Map<String, dynamic>);
+        customerController.customerId.value = customerData.value!.uid!;
       }
     } catch (e) {
       print("Erro ao buscar dados do customer: $e");

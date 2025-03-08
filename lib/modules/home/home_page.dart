@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -61,8 +61,9 @@ class HomePage extends StatelessWidget {
           style: TextStyle(color: Colors.black),
         ),
         icon: Icon(
-          Icons.add,
+          FontAwesomeIcons.plus,
           color: primaryThemeColor,
+          size: 15,
         ),
       ),
       body: Stack(
