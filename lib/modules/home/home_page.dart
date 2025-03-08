@@ -1,13 +1,16 @@
 import 'dart:convert';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/controllers/nivel_controller.dart';
-import 'package:mobile/data/models/checkin_model.dart';
+import 'package:mobile/data/models/cashback_model.dart';
 import 'package:mobile/data/models/company_model.dart';
-import 'package:mobile/data/repositories/checkin_repository.dart';
+import 'package:mobile/data/repositories/cashback_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/drawer_custom.dart';
@@ -18,8 +21,20 @@ class HomePage extends StatelessWidget {
   HomePage({super.key});
 
   late FirebaseInAppMessaging fiam;
-  final checkInRepository = CheckinRepository();
+  final cashbackRepository = CashbackRepository();
   final NivelController nivelController = NivelController();
+
+  final MoneyMaskedTextController moneyController = MoneyMaskedTextController(
+    leftSymbol: 'R\$ ',
+    decimalSeparator: ',',
+    thousandSeparator: '.',
+    precision: 2,
+  );
+  final MoneyMaskedTextController moneyController2 = MoneyMaskedTextController(
+    decimalSeparator: ',',
+    thousandSeparator: '.',
+    precision: 2,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +82,7 @@ class HomePage extends StatelessWidget {
         ),
       ),
       body: Stack(
-        clipBehavior:
-            Clip.none, // Permite elementos saírem dos limites do Stack
+        clipBehavior: Clip.none,
         children: [
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -115,32 +129,54 @@ class HomePage extends StatelessWidget {
                             ),
                             Row(
                               children: [
-                                Expanded(
-                                    child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'R\$ ',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                      TextSpan(
-                                        text: "100.000.000,00",
-                                        style: TextStyle(
-                                            foreground: Paint()
-                                              ..shader = LinearGradient(
-                                                colors: [
-                                                  primaryThemeColor,
-                                                  Colors.black,
-                                                  primaryThemeColor,
-                                                ],
-                                              ).createShader(Rect.fromLTWH(
-                                                  50, 0, 400, 50)),
-                                            fontSize: 30,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                )),
+                                StreamBuilder<double>(
+                                  stream: cashbackRepository
+                                      .getRealTimeCashbackBalance(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8),
+                                          child: ProgressIndicatorCustom(),
+                                        ),
+                                      );
+                                    } else {
+                                      moneyController2
+                                          .updateValue(snapshot.data ?? 0);
+                                      var totalCashback = moneyController2.text;
+                                      return Expanded(
+                                        child: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'R\$ ',
+                                                style: TextStyle(fontSize: 18),
+                                              ),
+                                              TextSpan(
+                                                text: totalCashback,
+                                                style: TextStyle(
+                                                    foreground: Paint()
+                                                      ..shader = LinearGradient(
+                                                        colors: [
+                                                          primaryThemeColor,
+                                                          Colors.black,
+                                                          primaryThemeColor,
+                                                        ],
+                                                      ).createShader(
+                                                          Rect.fromLTWH(
+                                                              50, 0, 400, 50)),
+                                                    fontSize: 30,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
                               ],
                             ),
                           ],
@@ -168,7 +204,7 @@ class HomePage extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(20, 5, 20, 0),
                 child: SingleChildScrollView(
                   child: StreamBuilder<List<Map<String, dynamic>>>(
-                    stream: checkInRepository.getLast10Checkins(),
+                    stream: cashbackRepository.getLast10Document(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -183,66 +219,66 @@ class HomePage extends StatelessWidget {
                           final jsonData = joinedData.map((data) {
                             return {
                               ...data,
-                              'checkin': data['checkin'],
+                              'cashback': data['cashback'],
                               'company': data['company'],
                             };
                           }).toList();
                           return ListView.builder(
-                            itemCount: joinedData.length,
+                            itemCount: joinedData.length * 2 - 1,
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             itemBuilder: (BuildContext context, int index) {
-                              final item = jsonData[index];
-                              Map<String, dynamic> jsonCheckIn =
-                                  item['checkin'];
-                              String jsonCompany = jsonEncode(item['company']);
-                              Map<String, dynamic> checkinDocMap = jsonCheckIn;
-                              Map<String, dynamic> companyDocMap =
-                                  jsonDecode(jsonCompany);
-                              final checkinModel =
-                                  CheckinModel.fromJson(checkinDocMap);
-
-                              final companyModel =
-                                  CompanyModel.fromJson(companyDocMap);
-
-                              DateTime checkInparsedDate =
-                                  DateTime.parse(checkinModel.date);
-
-                              // Formatando a data no formato dd/MM/yyyy
-                              String checkInFormattedDate =
-                                  DateFormat('dd/MM/yyyy')
-                                      .format(checkInparsedDate);
-                              return Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: ListTile(
-                                          contentPadding:
-                                              EdgeInsets.fromLTRB(20, 0, 0, 0),
-                                          leading: Icon(
-                                            Icons.beenhere,
-                                            color: iconColorTheme,
-                                            size: 20,
-                                          ),
-                                          title: Text(
-                                            companyModel.nomeFantasia,
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                          subtitle: Text(
-                                            'check-in em $checkInFormattedDate',
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                          onTap: () {},
-                                        ),
-                                      ),
-                                    ],
+                              if (index.isOdd) {
+                                return Divider();
+                              } else {
+                                int itemIndex = index ~/ 2;
+                                final item = jsonData[itemIndex];
+                                Map<String, dynamic> jsonCashback =
+                                    item['cashback'];
+                                String jsonCompany =
+                                    jsonEncode(item['company']);
+                                Map<String, dynamic> cashbackDocMap =
+                                    jsonCashback;
+                                Map<String, dynamic> companyDocMap =
+                                    jsonDecode(jsonCompany);
+                                final cashbackModel =
+                                    CashbackModel.fromJson(cashbackDocMap);
+                                final companyModel =
+                                    CompanyModel.fromJson(companyDocMap);
+                                // DateTime cashbackParsedDate =
+                                //     DateTime.parse(cashbackModel.date);
+                                // String cashbackFormattedDate =
+                                //     DateFormat('dd/MM/yyyy')
+                                //         .format(cashbackParsedDate);
+                                String cashbackFormattedDateHour =
+                                    converTimeStamp(cashbackModel.dateTime);
+                                moneyController
+                                    .updateValue(cashbackModel.valor);
+                                var valor = moneyController.text;
+                                moneyController
+                                    .updateValue(cashbackModel.cashback);
+                                var cashback = moneyController.text;
+                                return ListTile(
+                                  isThreeLine: true,
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(20, 0, 0, 0),
+                                  leading: Icon(
+                                    Icons.shopping_bag,
+                                    color: iconColorTheme,
+                                    size: 20,
                                   ),
-                                  Divider(
-                                    color: Colors.grey[200],
-                                  )
-                                ],
-                              );
+                                  trailing: Text(cashbackFormattedDateHour),
+                                  title: Text(
+                                    companyModel.nomeFantasia,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  subtitle: Text(
+                                    'Valor: $valor\nCashback: $cashback',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  onTap: () {},
+                                );
+                              }
                             },
                           );
                         } else {
@@ -258,5 +294,12 @@ class HomePage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  converTimeStamp(Timestamp timeStamp) {
+    Timestamp timestamp = timeStamp;
+    DateTime dateTime = timestamp.toDate();
+    String formattedDate = DateFormat('dd/MM/yyyy HH:mm:ss').format(dateTime);
+    return formattedDate;
   }
 }

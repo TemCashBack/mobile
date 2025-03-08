@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/data/models/cashback_model.dart';
-import 'package:mobile/data/models/checkin_model.dart';
 
 class CashbackRepository {
   late CollectionReference cashbackColletion;
@@ -20,35 +18,41 @@ class CashbackRepository {
     cashbackColletion.add(cashbackModel.toJson());
   }
 
-  Stream<QuerySnapshot> getCheckInLength() {
-    var checkins = cashbackColletion
+  Stream<QuerySnapshot> getCashbackBalance() {
+    if (authController.user.value != null) {
+      var checkins = cashbackColletion
+          .where('customerId', isEqualTo: authController.user.value!.uid)
+          .snapshots();
+      return checkins;
+    } else {
+      return Stream.empty();
+    }
+  }
+
+  Stream<double> getRealTimeCashbackBalance() {
+    return cashbackColletion
         .where('customerId', isEqualTo: authController.user.value!.uid)
-        .snapshots(includeMetadataChanges: true);
-    return checkins;
+        .snapshots()
+        .map((QuerySnapshot snapshot) {
+      double total = 0.0;
+      for (var doc in snapshot.docs) {
+        total += doc['cashback']?.toDouble() ?? 0.0;
+      }
+      return total;
+    });
   }
 
-  Future<int> getCheckIns(
-      String companyId, String customerId, DateTime dateTime) async {
-    var onlyDate = DateFormat("yyyy-MM-dd").format(dateTime);
-    var checkins = await cashbackColletion
-        .where('customerId', isEqualTo: customerId)
-        .where('companyId', isEqualTo: companyId)
-        .where('date', isEqualTo: onlyDate)
-        .get();
-    return checkins.docs.length;
-  }
-
-  Stream<List<Map<String, dynamic>>> getLast10Checkins() {
+  Stream<List<Map<String, dynamic>>> getLast10Document() {
     // Stream para a coleção de pedidos
-    final checkinStream = cashbackColletion
+    final cashbackStream = cashbackColletion
         .where('customerId', isEqualTo: authController.user.value!.uid)
         .orderBy('dateTime', descending: true)
         .limit(10)
         .snapshots();
 
-    return checkinStream.asyncExpand((checkinSnapshot) async* {
-      final companiesId = checkinSnapshot.docs
-          .map((checkin) => checkin['companyId'])
+    return cashbackStream.asyncExpand((cashbackSnapshot) async* {
+      final companiesId = cashbackSnapshot.docs
+          .map((cashback) => cashback['companyId'])
           .toSet(); // Remove duplicados
 
       if (companiesId.isEmpty) {
@@ -67,11 +71,11 @@ class CashbackRepository {
       };
 
       // Combina os dados dos pedidos com os usuários
-      final joinedData = checkinSnapshot.docs.map((checkin) {
-        final companyId = checkin['companyId'];
+      final joinedData = cashbackSnapshot.docs.map((cashback) {
+        final companyId = cashback['companyId'];
         final company = companiesMap[companyId];
         return {
-          'checkin': checkin.data(),
+          'cashback': cashback.data(),
           'company': company,
         };
       }).toList();

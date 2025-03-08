@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:mobile/controllers/customer_controller.dart';
 import 'package:mobile/controllers/firebase_in_app_message_controller.dart';
 import 'package:mobile/controllers/firebase_message_controller.dart';
-import 'package:mobile/controllers/remote_config_controller.dart';
 import 'package:mobile/initial_binding.dart';
 import 'package:mobile/modules/splash_screen/splash_screen_page.dart';
 import 'package:mobile/routes/app_pages.dart';

@@ -29,11 +29,9 @@ class CashbackPage extends StatelessWidget {
     void validateInput(String value) {
       double inputValue = moneyController.numberValue;
       if (inputValue > 200) {
-        print('aquiiii');
         moneyController.updateValue(200);
         controller.valorCompra.value = 200;
       } else {
-        print('aquiiii2222222222');
         controller.valorCompra.value = inputValue;
       }
     }
