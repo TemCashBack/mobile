@@ -21,7 +21,6 @@ class CompanyModel {
   int status;
   bool isOnline;
   String categoria;
-  List<dynamic> discounts;
 
   CompanyModel({
     required this.endereco,
@@ -42,7 +41,6 @@ class CompanyModel {
     required this.razaoSocial,
     required this.status,
     required this.categoria,
-    required this.discounts,
     this.isOnline = false,
   });
 
@@ -66,7 +64,6 @@ class CompanyModel {
         razaoSocial: json['razaoSocial'],
         status: json['status'],
         categoria: json['categoria'],
-        discounts: json['discounts'],
         isOnline: json['isOnline'] ?? false);
   }
 
@@ -91,7 +88,6 @@ class CompanyModel {
     data['status'] = status;
     data['categoria'] = categoria;
     data['isOnline'] = isOnline;
-    data['discounts'] = discounts;
     return data;
   }
 }
