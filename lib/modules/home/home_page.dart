@@ -269,6 +269,14 @@ class HomePage extends StatelessWidget {
                               'company': data['company'],
                             };
                           }).toList();
+                          if (jsonData.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text('Nada encontrado!'),
+                              ),
+                            );
+                          }
                           return ListView.builder(
                             itemCount: joinedData.length * 2 - 1,
                             physics: NeverScrollableScrollPhysics(),

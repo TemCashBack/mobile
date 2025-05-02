@@ -199,11 +199,15 @@ class CompanyBottomSheet {
                             _calcDistance(id, companyModel, currentLocation),
                       ),
                       if (companyModel.telefones.isNotEmpty) ...[
-                        PhoneButton(
-                            onPressed: () => {
-                                  launchUrl(Uri.http(
-                                      'tel://${companyModel.telefones[0]}'))
-                                })
+                        Column(
+                          children: companyModel.telefones.map((telefone) {
+                            return PhoneButton(
+                              onPressed: () =>
+                                  {launchUrl(Uri.parse('tel://$telefone'))},
+                              label: telefone,
+                            );
+                          }).toList(),
+                        ),
                       ],
                       FutureBuilder<List<AvailableMap>>(
                         future: MapLauncher.installedMaps,
@@ -303,39 +307,38 @@ class CompanyBottomSheet {
   }
 
   launchFacebook(String facebook) async {
-    var url = 'https://www.facebook.com/$facebook/';
-
-    if (await canLaunchUrl(Uri.https(url))) {
-      await launchUrl(Uri.https(url));
+    Uri uri = Uri.parse('https://www.facebook.com/{$facebook}/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      throw 'There was a problem to open the url: $url';
+      throw 'Ocorreu um erro ao abrir o facebook: $facebook';
     }
   }
 
   launchInstagram(String instagram) async {
-    var url = 'https://www.instagram.com/$instagram/';
-    if (await canLaunchUrl(Uri.https(url))) {
-      await launchUrl(Uri.https(url));
+    Uri uri = Uri.parse('https://www.instagram.com/$instagram/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      throw 'There was a problem to open the url: $url';
+      throw 'Ocorreu um erro ao abrir o instagram: $instagram';
     }
   }
 
   launchWhatsApp(String whatsapp) async {
-    var url = 'https://api.whatsapp.com/send?phone=$whatsapp';
-    if (await canLaunchUrl(Uri.https(url))) {
-      await launchUrl(Uri.https(url));
+    Uri uri = Uri.parse('https://api.whatsapp.com/send?phone=$whatsapp');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      throw 'There was a problem to open the url: $url';
+      throw 'Ocorreu um erro ao abrir o whatsapp: $whatsapp';
     }
   }
 
   launchLinkedin(String linkedin) async {
-    var url = linkedin;
-    if (await canLaunchUrl(Uri.https(url))) {
-      await launchUrl(Uri.https(url));
+    Uri uri = Uri.parse('https://www.linkedin.com/in/$linkedin/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      throw 'There was a problem to open the url: $url';
+      throw 'Ocorreu um erro ao abrir o linkedin: $linkedin';
     }
   }
 }

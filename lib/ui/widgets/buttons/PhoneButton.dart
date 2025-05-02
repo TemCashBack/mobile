@@ -3,8 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class PhoneButton extends StatelessWidget {
-  const PhoneButton({super.key, required this.onPressed});
+  const PhoneButton({super.key, required this.onPressed, required this.label});
   final GestureTapCallback onPressed;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +30,14 @@ class PhoneButton extends StatelessWidget {
               "Ligar",
               maxLines: 1,
               style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(
+              width: 2.0,
+            ),
+            Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(color: Colors.white, fontSize: 9),
             ),
           ],
         ),
