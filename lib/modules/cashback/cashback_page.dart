@@ -50,12 +50,23 @@ class CashbackPage extends StatelessWidget {
           () => Stepper(
             currentStep: controller.currentStep.value,
             onStepContinue: () {
+              if (controller.currentStep.value == 0) {
+                if (controller.valorCompra.value <= 0) {
+                  Get.snackbar(
+                      'Erro', 'Insira um valor válido para continuar.');
+                  return;
+                }
+              } else if (controller.currentStep.value == 1) {
+                if (controller.imagePath.value.isEmpty) {
+                  Get.snackbar('Erro', 'Tire uma foto do comprovante.');
+                  return;
+                }
+              }
               if (controller.currentStep.value == 2) {
                 controller.saveCashBack();
               } else {
                 controller.nextStep();
               }
-              controller.nextStep;
             },
             onStepCancel: controller.previousStep,
             controlsBuilder: (BuildContext context, ControlsDetails details) {
@@ -117,8 +128,18 @@ class CashbackPage extends StatelessWidget {
               ),
               Step(
                 title: Text('Confirmação'),
-                content: Text(
-                    'Sua compra será analisada pelo lojista. Assim que for confirmada, você receberá uma notificação no app informando a aprovação.'),
+                content: Obx(() {
+                  if (controller.isLoading.value) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    return Column(
+                      children: [
+                        Text(
+                            'Sua compra será analisada pelo lojista. Assim que for confirmada, você receberá uma notificação no app informando a aprovação.'),
+                      ],
+                    );
+                  }
+                }),
                 isActive: controller.currentStep.value >= 3,
               ),
             ],

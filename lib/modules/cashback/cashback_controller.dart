@@ -17,6 +17,8 @@ class CashbackController extends GetxController {
   var valorCompra = 0.0.obs;
   var cashback = 0.0.obs;
 
+  RxBool isLoading = false.obs;
+
   final CustomerController customerController = Get.find<CustomerController>();
   final CashbackRepository cashbackRepository = CashbackRepository();
 
@@ -41,7 +43,8 @@ class CashbackController extends GetxController {
       aprovado: false,
       utilizado: false,
     );
-    cashbackRepository.save(cashbackModel);
+    await cashbackRepository.save(cashbackModel);
+    isLoading.value = false;
   }
 
   Future<String> _uploadImageToFirebase(String imagePath) async {
