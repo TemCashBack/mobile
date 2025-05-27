@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:mobile/controllers/customer_controller.dart';
 import 'package:mobile/data/models/cashback_model.dart';
 import 'package:mobile/data/repositories/cashback_repository.dart';
+import 'package:mobile/data/repositories/used_cashback_repository.dart';
 import 'package:path/path.dart';
 
 class CashbackController extends GetxController {
@@ -16,15 +17,32 @@ class CashbackController extends GetxController {
   var imagePath = "".obs;
   var valorCompra = 0.0.obs;
   var cashback = 0.0.obs;
+  var usedCashback = 0.0.obs;
+  var utilizaValor = 0.0.obs;
 
   RxBool isLoading = false.obs;
 
   final CustomerController customerController = Get.find<CustomerController>();
   final CashbackRepository cashbackRepository = CashbackRepository();
+  final UsedCashbackRepository usedCashbackRepository =
+      UsedCashbackRepository();
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  void saveCashBack() async {
+  @override
+  void onInit() {
+    super.onInit();
+    loadCashbackBalance();
+  }
+
+  void resetValues() {
+    valorCompra.value = 0.0;
+    cashback.value = 0.0;
+    usedCashback.value = 0.0;
+    utilizaValor.value = 0.0;
+  }
+
+  Future<String> saveCashBack() async {
     var dateTime = DateTime.now();
     var onlyDate = DateFormat("yyyy-MM-dd").format(dateTime);
     cashback.value = valorCompra.value * (5 / 100);
@@ -43,8 +61,12 @@ class CashbackController extends GetxController {
       aprovado: false,
       utilizado: false,
     );
-    await cashbackRepository.save(cashbackModel);
-    isLoading.value = false;
+
+    return await cashbackRepository.save(cashbackModel).then((id) {
+      isLoading.value = false;
+      resetValues();
+      return id;
+    });
   }
 
   Future<String> _uploadImageToFirebase(String imagePath) async {
@@ -57,8 +79,13 @@ class CashbackController extends GetxController {
     return downloadUrl;
   }
 
+  Future<void> loadCashbackBalance() async {
+    double balance = await cashbackRepository.getCashbackBalance();
+    usedCashback.value = balance;
+  }
+
   void nextStep() {
-    if (currentStep < 2) {
+    if (currentStep < 3) {
       currentStep++;
     }
   }

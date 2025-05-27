@@ -4,22 +4,24 @@ import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/data/models/cashback_model.dart';
 
 class CashbackRepository {
-  late CollectionReference cashbackColletion;
+  late CollectionReference cashbackCollection;
+  late CollectionReference usedCashbackCollection;
   late CollectionReference companiesCollection;
   final firestore = FirebaseFirestore.instance;
   AuthController authController = Get.find<AuthController>();
 
   CashbackRepository() {
-    cashbackColletion = firestore.collection('cashback');
+    cashbackCollection = firestore.collection('cashback');
     companiesCollection = firestore.collection('companies');
+    usedCashbackCollection = firestore.collection('usedCashback');
   }
 
-  Future<void> save(CashbackModel cashbackModel) async {
-    cashbackColletion.add(cashbackModel.toJson());
+  Future<String> save(CashbackModel cashbackModel) async {
+    return cashbackCollection.add(cashbackModel.toJson()).then((obj) => obj.id);
   }
 
   Stream<double> getRealTimeCashbackBalance() {
-    return cashbackColletion
+    return cashbackCollection
         .where('customerId', isEqualTo: authController.user.value!.uid)
         .where('aprovado', isEqualTo: true)
         .where('utilizado', isEqualTo: false)
@@ -33,8 +35,9 @@ class CashbackRepository {
     });
   }
 
+  //TODO: não vai ser mais utilizado
   Stream<double> getRealTimeCashbackBalanceUsed() {
-    return cashbackColletion
+    return cashbackCollection
         .where('customerId', isEqualTo: authController.user.value!.uid)
         .where('aprovado', isEqualTo: true)
         .where('utilizado', isEqualTo: true)
@@ -48,9 +51,34 @@ class CashbackRepository {
     });
   }
 
+  //Pega o valor total de cashback disponivel
+  Future<double> getCashbackBalance() async {
+    //Pega o valor total que tem
+    final snapshot = await cashbackCollection
+        .where('customerId', isEqualTo: authController.user.value!.uid)
+        .where('aprovado', isEqualTo: true)
+        .get();
+    double total = 0.0;
+    for (var doc in snapshot.docs) {
+      total += (doc['cashback'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    //Pega o total que foi utilizado
+    final usedSnapshot = await usedCashbackCollection
+        .where('customerId', isEqualTo: authController.user.value!.uid)
+        .get();
+    double usedTotal = 0.0;
+    for (var doc in usedSnapshot.docs) {
+      usedTotal += (doc['cashback'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    double dif = total - usedTotal;
+    return dif;
+  }
+
   Stream<List<Map<String, dynamic>>> getLast10Document() {
     // Stream para a coleção de pedidos
-    final cashbackStream = cashbackColletion
+    final cashbackStream = cashbackCollection
         .where('customerId', isEqualTo: authController.user.value!.uid)
         .orderBy('dateTime', descending: true)
         .limit(10)
