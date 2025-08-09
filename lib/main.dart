@@ -1,4 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -18,16 +20,33 @@ void main() async {
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarIconBrightness: Brightness.dark),
   );
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
         apiKey: "AIzaSyBAUhPkB1OLsgDEh7857KPheJ3r5FxmN6I",
         authDomain: "temcashback-914bc.firebaseapp.com",
         projectId: "temcashback-914bc",
         storageBucket: "temcashback-914bc.firebasestorage.app",
         messagingSenderId: "941351203236",
         appId: "1:941351203236:web:77e84c5009a095dc9e5131",
-        measurementId: "G-L29TEDX8QD"),
-  );
+        measurementId: "G-L29TEDX8QD",
+      ),
+    );
+  } else if (Platform.isIOS) {
+    // iOS sem depender de Xcode para incluir o plist no bundle
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyAz4vRRzwYlrFr9MB28Z4xhx9KQk548m1M",
+        appId: "1:941351203236:ios:445bccb43c8a379f9e5131",
+        messagingSenderId: "941351203236",
+        projectId: "temcashback-914bc",
+        storageBucket: "temcashback-914bc.firebasestorage.app",
+      ),
+    );
+  } else {
+    // Android/macOS: usa arquivos nativos (google-services.json / GoogleService-Info.plist)
+    await Firebase.initializeApp();
+  }
 
   Get.put(FirebaseMessagingController());
   Get.put(FirebaseInAppMessagingController());
