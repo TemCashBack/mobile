@@ -15,6 +15,13 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final customer = authController.customerData.value;
+    final String displayName = (customer?.nomeCompleto != null &&
+            customer!.nomeCompleto!.trim().isNotEmpty)
+        ? customer.nomeCompleto!.trim()
+        : '<-- nome de exibição -->';
+    final String? photoUrl = customer?.photoURL;
+    final bool hasPhoto = photoUrl != null && photoUrl.trim().isNotEmpty;
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -27,33 +34,40 @@ class CustomDrawer extends StatelessWidget {
                     top: 40,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50.0),
-                      child: (authController.customerData.value!.photoURL) !=
-                              null
+                      child: hasPhoto
                           ? Image.network(
-                              authController.customerData.value!.photoURL ?? '',
+                              photoUrl,
                               height: 50.0,
                               width: 50.0,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset(
+                                'lib/ui/assets/logo-round.png',
+                                height: 50.0,
+                                width: 50.0,
+                                fit: BoxFit.cover,
+                              ),
                             )
                           : Image.asset(
                               'lib/ui/assets/logo-round.png',
-                              height: 40,
-                              fit: BoxFit.contain,
+                              height: 50.0,
+                              width: 50.0,
+                              fit: BoxFit.cover,
                             ),
                     ),
                   ),
                   Positioned(
                     top: 50,
+                    left: 110,
                     right: 0,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                      child: Flexible(
-                        child: Text(
-                          authController.customerData.value!.nomeCompleto ??
-                              '<-- nome de exibição -->',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      child: Text(
+                        displayName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   )
