@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
-import 'package:mobile/modules/home/home_page.dart';
-import 'package:mobile/modules/login/login_page.dart';
+import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class SplashScreenPage extends StatelessWidget {
@@ -12,13 +11,12 @@ class SplashScreenPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authController = Get.find<AuthController>();
 
-    // Realiza o redirecionamento com base no estado do usuário
+    // Realiza o redirecionamento com base no estado do usuário6
     Future.delayed(Duration.zero, () {
       if (authController.user.value != null) {
-        Get.off(() => HomePage());
+        Get.offNamed(AppRoutes.HOME);
       } else {
-        // Se o usuário não está logado, vai para a LoginPage
-        Get.off(() => LoginPage());
+        Get.offNamed(AppRoutes.BOASVINDAS);
       }
     });
 

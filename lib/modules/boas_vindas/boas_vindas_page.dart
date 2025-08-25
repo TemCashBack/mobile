@@ -96,7 +96,8 @@ class BoasVindasPage extends StatelessWidget {
                     ),
                     LinkButton(
                         label: 'Termos de Uso e Privacidade',
-                        onPressed: () => launchUrl(Uri.http(''))),
+                        onPressed: () =>
+                            launchUrl(Uri.http('temcashback.com.br'))),
                   ],
                 ))
               ],
