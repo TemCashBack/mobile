@@ -35,6 +35,8 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
   List<DocumentSnapshot> empresas = [];
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   final bool _isIOS = Platform.isIOS;
+  MapType _currentMapType =
+      MapType.normal; // Adicionar controle de tipo de mapa
 
   @override
   void initState() {
@@ -385,7 +387,7 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
               // Atualizar posição da câmera se necessário
             },
             markers: Set<Marker>.of(markers.values),
-            mapType: MapType.normal,
+            mapType: _currentMapType, // Garantir que seja normal (terreno)
             initialCameraPosition: CameraPosition(
               target: LatLng(
                 locationController.currentPosition.value!.latitude,
@@ -393,17 +395,75 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
               ),
               zoom: 15.0,
             ),
-            onMapCreated: (GoogleMapController googleMapsController) {
+            onMapCreated: (GoogleMapController controller) {
               if (!_googleMapController.isCompleted) {
-                _googleMapController.complete(googleMapsController);
+                _googleMapController.complete(controller);
               }
+              print("Google Maps criado com sucesso");
+
+              // Aguardar um pouco e verificar se o mapa está funcionando
+              Future.delayed(Duration(milliseconds: 500), () {
+                try {
+                  // Tentar mover a câmera para verificar se o mapa está responsivo
+                  controller.animateCamera(CameraUpdate.zoomBy(0.1));
+                  print("Mapa está responsivo");
+                } catch (e) {
+                  print("Erro ao testar mapa: $e");
+                }
+              });
             },
             gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{}..add(
                 Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
             myLocationButtonEnabled: true,
             myLocationEnabled: true,
+            // Configurações adicionais para melhorar o carregamento
+            compassEnabled: true,
+            mapToolbarEnabled: true,
+            zoomControlsEnabled:
+                false, // Controles de zoom nativos do iOS/Android
+            // Configurações específicas para melhorar a qualidade da imagem
+            liteModeEnabled:
+                false, // Desabilitar modo lite para melhor qualidade
           ),
           _buildSearchBar(),
+          // Adicionar indicador de carregamento do mapa
+          Positioned(
+            top: 100,
+            right: 10,
+            child: Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.map),
+                    onPressed: () {
+                      _showMapTypeSelector();
+                    },
+                    tooltip: 'Alterar tipo de mapa',
+                  ),
+                  SizedBox(height: 8),
+                  IconButton(
+                    icon: Icon(Icons.refresh),
+                    onPressed: () {
+                      _refreshMap();
+                    },
+                    tooltip: 'Recarregar mapa',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       );
     } catch (e) {
@@ -424,6 +484,13 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {});
+              },
+              child: Text('Tentar Novamente'),
+            ),
           ],
         ),
       );
@@ -559,6 +626,110 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
         'Erro',
         'Não foi possível navegar para sua localização',
         snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  void _showMapTypeSelector() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Tipo de Mapa',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              ListTile(
+                leading: Icon(Icons.map),
+                title: Text('Normal (Terreno)'),
+                onTap: () {
+                  _changeMapType(MapType.normal);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.satellite),
+                title: Text('Satélite'),
+                onTap: () {
+                  _changeMapType(MapType.satellite);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.terrain),
+                title: Text('Híbrido'),
+                onTap: () {
+                  _changeMapType(MapType.hybrid);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _changeMapType(MapType mapType) {
+    setState(() {
+      _currentMapType = mapType;
+    });
+    print("Mudando tipo de mapa para: $mapType");
+
+    // Mostrar mensagem de sucesso
+    String mapTypeName = '';
+    switch (mapType) {
+      case MapType.normal:
+        mapTypeName = 'Normal (Terreno)';
+        break;
+      case MapType.satellite:
+        mapTypeName = 'Satélite';
+        break;
+      case MapType.hybrid:
+        mapTypeName = 'Híbrido';
+        break;
+      case MapType.terrain:
+        mapTypeName = 'Terreno';
+        break;
+      case MapType.none:
+        mapTypeName = 'Nenhum';
+        break;
+    }
+
+    Get.snackbar(
+      'Tipo de Mapa',
+      'Alterado para: $mapTypeName',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
+    );
+  }
+
+  void _refreshMap() {
+    try {
+      setState(() {
+        // Forçar reconstrução do mapa
+      });
+      print("Mapa recarregado");
+
+      // Mostrar mensagem de sucesso
+      Get.snackbar(
+        'Sucesso',
+        'Mapa recarregado com sucesso',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    } catch (e) {
+      print("Erro ao recarregar mapa: $e");
+      Get.snackbar(
+        'Erro',
+        'Erro ao recarregar mapa',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
       );
     }
   }
