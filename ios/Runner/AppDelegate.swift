@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import CoreLocation
+import GoogleMaps
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -15,6 +16,9 @@ import CoreLocation
       let locationManager = CLLocationManager()
       locationManager.delegate = self
     }
+    
+    // Configuração específica para Google Maps
+    GMSServices.provideAPIKey("AIzaSyC6Q5EC_3hYvdCpkMGje4Kv2z5_mE12fkE")
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
