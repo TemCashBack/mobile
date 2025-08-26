@@ -34,6 +34,11 @@ class LocationController extends GetxController {
 
       // Verificar permissões existentes
       await checkLocationPermission();
+
+      // Se tem permissão, obter localização inicial
+      if (hasLocationPermission.value) {
+        await _getCurrentLocation();
+      }
     } catch (e) {
       print("Erro ao inicializar serviços de localização: $e");
     }
@@ -179,6 +184,12 @@ class LocationController extends GetxController {
       hasLocationPermission.value =
           permission == LocationPermission.whileInUse ||
               permission == LocationPermission.always;
+
+      // Se permissão concedida, obter localização
+      if (hasLocationPermission.value) {
+        await _getCurrentLocation();
+      }
+
       return hasLocationPermission.value;
     } catch (e) {
       print("Erro ao solicitar permissão: $e");

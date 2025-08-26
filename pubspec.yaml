@@ -58,7 +58,7 @@ dependencies:
   firebase_in_app_messaging: ^0.8.1+2
   flutter_stepper: ^0.0.1
   http: ^1.2.2
-  # location: ^7.0.1  # Comentado para evitar conflito com geolocator
+  # Pacote location removido - não estava sendo utilizado
   flutter_svg: ^2.0.17
   firebase_storage: ^12.4.0
   image_cropper: ^8.1.0
