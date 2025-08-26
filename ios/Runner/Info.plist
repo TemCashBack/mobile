@@ -65,7 +65,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
-		<string>background-processing</string>
 	</array>
 	<key>NSLocationUsageDescription</key>
 	<string>Este aplicativo precisa de acesso à sua localização para funcionar corretamente.</string>
