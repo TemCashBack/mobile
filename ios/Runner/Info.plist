@@ -51,9 +51,23 @@
 	<string>Usamos sua localização para mostrar estabelecimentos próximos e habilitar check-ins.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Podemos usar sua localização para enviar alertas relevantes e habilitar check-ins próximos, mesmo quando o app não estiver em uso.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Podemos usar sua localização para enviar alertas relevantes e habilitar check-ins próximos, mesmo quando o app não estiver em uso.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Usamos sua biblioteca de fotos para selecionar imagens de perfil e comprovantes.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Podemos salvar fotos capturadas ou editadas na sua biblioteca, se você optar.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>LocationTemporaryUsageDescription</key>
+		<string>Precisamos de acesso temporário à sua localização para melhorar a precisão dos check-ins.</string>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>background-processing</string>
+	</array>
+	<key>NSLocationUsageDescription</key>
+	<string>Este aplicativo precisa de acesso à sua localização para funcionar corretamente.</string>
 </dict>
 </plist>

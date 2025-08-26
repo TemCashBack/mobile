@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import CoreLocation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -8,6 +9,33 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+    
+    // Configuração específica para localização no iOS
+    if #available(iOS 14.0, *) {
+      let locationManager = CLLocationManager()
+      locationManager.delegate = self
+    }
+    
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}
+
+// MARK: - CLLocationManagerDelegate
+extension AppDelegate: CLLocationManagerDelegate {
+  func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+    switch status {
+    case .authorizedWhenInUse, .authorizedAlways:
+      print("Localização autorizada")
+    case .denied, .restricted:
+      print("Localização negada ou restrita")
+    case .notDetermined:
+      print("Localização não determinada")
+    @unknown default:
+      print("Status de localização desconhecido")
+    }
+  }
+  
+  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    print("Erro na localização: \(error.localizedDescription)")
   }
 }
