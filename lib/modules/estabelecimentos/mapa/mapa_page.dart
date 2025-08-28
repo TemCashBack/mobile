@@ -424,6 +424,14 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
             // Configurações específicas para melhorar a qualidade da imagem
             liteModeEnabled:
                 false, // Desabilitar modo lite para melhor qualidade
+            // Configurações específicas para iOS
+            indoorViewEnabled: true,
+            trafficEnabled: false,
+            buildingsEnabled: true,
+            // Configurações para melhorar o carregamento dos tiles
+            cameraTargetBounds: CameraTargetBounds.unbounded,
+            minMaxZoomPreference: MinMaxZoomPreference(5.0, 20.0),
+            // Configurações específicas para resolver problema de terreno no iOS
           ),
           _buildSearchBar(),
           // Adicionar indicador de carregamento do mapa
@@ -460,6 +468,24 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
                     },
                     tooltip: 'Recarregar mapa',
                   ),
+                  if (_isIOS) ...[
+                    SizedBox(height: 8),
+                    IconButton(
+                      icon: Icon(Icons.terrain),
+                      onPressed: () {
+                        _forceTerrainMap();
+                      },
+                      tooltip: 'Forçar mapa de terreno (iOS)',
+                    ),
+                    SizedBox(height: 8),
+                    IconButton(
+                      icon: Icon(Icons.refresh),
+                      onPressed: () {
+                        _forceIOSMapReload();
+                      },
+                      tooltip: 'Recarregar mapa iOS',
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -728,6 +754,75 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
       Get.snackbar(
         'Erro',
         'Erro ao recarregar mapa',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    }
+  }
+
+  // Método específico para iOS para forçar recarregamento dos tiles
+  void _forceIOSMapReload() async {
+    if (!_isIOS) return;
+
+    try {
+      // Forçar reconstrução completa do mapa
+      setState(() {
+        _isInitialized = false;
+      });
+
+      // Aguardar um pouco
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Reconstruir o mapa
+      setState(() {
+        _isInitialized = true;
+      });
+
+      print("Mapa iOS recarregado forçadamente");
+      Get.snackbar(
+        'Sucesso',
+        'Mapa iOS recarregado forçadamente',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    } catch (e) {
+      print("Erro ao recarregar mapa iOS: $e");
+      Get.snackbar(
+        'Erro',
+        'Erro ao recarregar mapa iOS',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    }
+  }
+
+  void _forceTerrainMap() {
+    if (_isIOS) {
+      try {
+        setState(() {
+          _currentMapType = MapType.terrain;
+        });
+        print("Forçado mapa de terreno no iOS");
+        Get.snackbar(
+          'Tipo de Mapa',
+          'Mapa de terreno forçado no iOS',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+        );
+      } catch (e) {
+        print("Erro ao forçar mapa de terreno no iOS: $e");
+        Get.snackbar(
+          'Erro',
+          'Erro ao forçar mapa de terreno no iOS',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+        );
+      }
+    } else {
+      print("Não é iOS, não há necessidade de forçar o mapa de terreno.");
+      Get.snackbar(
+        'Tipo de Mapa',
+        'Este recurso é apenas para iOS.',
         snackPosition: SnackPosition.BOTTOM,
         duration: Duration(seconds: 2),
       );

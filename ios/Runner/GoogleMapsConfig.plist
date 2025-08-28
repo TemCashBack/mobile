@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>GoogleMapsAPIKey</key>
+	<string>AIzaSyC6Q5EC_3hYvdCpkMGje4Kv2z5_mE12fkE</string>
+	<key>GoogleMapsEnableMetalRenderer</key>
+	<true/>
+	<key>GoogleMapsEnableTileCache</key>
+	<true/>
+	<key>GoogleMapsEnableHTTPS</key>
+	<true/>
+	<key>GoogleMapsEnableTerrain</key>
+	<true/>
+	<key>GoogleMapsEnableSatellite</key>
+	<true/>
+	<key>GoogleMapsEnableHybrid</key>
+	<true/>
+	<key>GoogleMapsEnableNormal</key>
+	<true/>
+	<key>GoogleMapsEnableBuildings</key>
+	<true/>
+	<key>GoogleMapsEnableIndoor</key>
+	<true/>
+	<key>GoogleMapsEnableTraffic</key>
+	<false/>
+	<key>GoogleMapsEnableCompass</key>
+	<true/>
+	<key>GoogleMapsEnableMyLocationButton</key>
+	<true/>
+	<key>GoogleMapsEnableMyLocation</key>
+	<true/>
+	<key>GoogleMapsEnableMapToolbar</key>
+	<true/>
+	<key>GoogleMapsEnableZoomControls</key>
+	<false/>
+	<key>GoogleMapsEnableLiteMode</key>
+	<false/>
+	<key>GoogleMapsEnableCameraTargetBounds</key>
+	<true/>
+	<key>GoogleMapsEnableMinMaxZoomPreference</key>
+	<true/>
+	<key>GoogleMapsMinZoom</key>
+	<real>5.0</real>
+	<key>GoogleMapsMaxZoom</key>
+	<real>20.0</real>
+</dict>
+</plist>
