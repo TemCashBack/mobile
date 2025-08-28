@@ -26,10 +26,7 @@ import GoogleMaps
       GMSServices.setMetalRendererEnabled(true)
     }
     
-    // Configurar cache de tiles para melhor performance
-    GMSServices.setTileCacheEnabled(true)
-    
-    // Aplicar configurações específicas do arquivo de configuração
+    // Aplicar configurações específicas do Google Maps
     _applyGoogleMapsConfiguration()
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -37,12 +34,6 @@ import GoogleMaps
   
   // Método para aplicar configurações específicas do Google Maps
   private func _applyGoogleMapsConfiguration() {
-    // Configurar para sempre usar HTTPS
-    GMSServices.setHTTPSEnabled(true)
-    
-    // Configurar cache de tiles
-    GMSServices.setTileCacheEnabled(true)
-    
     // Configurar renderizador Metal se disponível
     if #available(iOS 13.0, *) {
       GMSServices.setMetalRendererEnabled(true)
