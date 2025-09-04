@@ -34,16 +34,9 @@ import GoogleMaps
   
   // Método para aplicar configurações específicas do Google Maps
   private func _applyGoogleMapsConfiguration() {
-    // Configurar renderizador Metal se disponível
+    // Configurar renderizador Metal se disponível para melhor performance
     if #available(iOS 13.0, *) {
       GMSServices.setMetalRendererEnabled(true)
-    }
-    
-    // Configurações específicas para melhorar o carregamento dos tiles
-    // Configurar para usar sempre HTTPS (método correto)
-    if #available(iOS 9.0, *) {
-      // Configurar User-Agent para melhor compatibilidade
-      GMSServices.setUserAgent("TemCashBack/1.0.0")
     }
     
     print("Configurações do Google Maps aplicadas com sucesso")

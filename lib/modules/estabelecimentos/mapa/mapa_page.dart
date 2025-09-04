@@ -387,7 +387,9 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
               // Atualizar posição da câmera se necessário
             },
             markers: Set<Marker>.of(markers.values),
-            mapType: _currentMapType, // Garantir que seja normal (terreno)
+            mapType: _isIOS
+                ? MapType.terrain
+                : _currentMapType, // Forçar terreno no iOS
             initialCameraPosition: CameraPosition(
               target: LatLng(
                 locationController.currentPosition.value!.latitude,
@@ -809,20 +811,21 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
     if (!_isIOS) return;
 
     try {
-      // Aguardar um pouco para o mapa carregar completamente
-      await Future.delayed(Duration(milliseconds: 2000));
+      // Aguardar para o mapa carregar completamente
+      await Future.delayed(Duration(milliseconds: 3000));
 
       // Forçar tipo de mapa para terreno no iOS
-      if (_currentMapType == MapType.normal) {
-        setState(() {
-          _currentMapType = MapType.terrain;
-        });
-      }
+      setState(() {
+        _currentMapType = MapType.terrain;
+      });
 
-      // Mover a câmera ligeiramente para forçar recarregamento dos tiles
-      await controller.animateCamera(CameraUpdate.zoomBy(0.1));
-      await Future.delayed(Duration(milliseconds: 1000));
-      await controller.animateCamera(CameraUpdate.zoomBy(-0.1));
+      // Mover a câmera para forçar recarregamento dos tiles
+      await controller.animateCamera(CameraUpdate.zoomBy(0.5));
+      await Future.delayed(Duration(milliseconds: 1500));
+      await controller.animateCamera(CameraUpdate.zoomBy(-0.5));
+
+      // Aguardar mais um pouco para garantir carregamento
+      await Future.delayed(Duration(milliseconds: 2000));
 
       print("Configurações específicas do iOS aplicadas com sucesso");
     } catch (e) {
