@@ -809,20 +809,20 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
     if (!_isIOS) return;
 
     try {
-      // Forçar carregamento de tiles de alta qualidade
-      await Future.delayed(Duration(milliseconds: 1000));
+      // Aguardar um pouco para o mapa carregar completamente
+      await Future.delayed(Duration(milliseconds: 2000));
 
-      // Mover a câmera ligeiramente para forçar recarregamento dos tiles
-      await controller.animateCamera(CameraUpdate.zoomBy(0.01));
-      await Future.delayed(Duration(milliseconds: 500));
-      await controller.animateCamera(CameraUpdate.zoomBy(-0.01));
-
-      // Forçar tipo de mapa para terreno se necessário
+      // Forçar tipo de mapa para terreno no iOS
       if (_currentMapType == MapType.normal) {
         setState(() {
           _currentMapType = MapType.terrain;
         });
       }
+
+      // Mover a câmera ligeiramente para forçar recarregamento dos tiles
+      await controller.animateCamera(CameraUpdate.zoomBy(0.1));
+      await Future.delayed(Duration(milliseconds: 1000));
+      await controller.animateCamera(CameraUpdate.zoomBy(-0.1));
 
       print("Configurações específicas do iOS aplicadas com sucesso");
     } catch (e) {

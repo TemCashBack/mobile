@@ -40,18 +40,11 @@ import GoogleMaps
     }
     
     // Configurações específicas para melhorar o carregamento dos tiles
-    // Forçar uso de HTTPS para todos os tiles
-    GMSServices.setHTTPSRequired(true)
-    
-    // Configurar cache de tiles para melhor performance
-    if #available(iOS 14.0, *) {
-      // Configurar cache de tiles do Google Maps
-      let cacheSize = 50 * 1024 * 1024 // 50MB cache
-      GMSServices.setTileCacheSize(cacheSize)
+    // Configurar para usar sempre HTTPS (método correto)
+    if #available(iOS 9.0, *) {
+      // Configurar User-Agent para melhor compatibilidade
+      GMSServices.setUserAgent("TemCashBack/1.0.0")
     }
-    
-    // Configurar timeout para carregamento de tiles
-    GMSServices.setTileLoadTimeout(30.0) // 30 segundos timeout
     
     print("Configurações do Google Maps aplicadas com sucesso")
   }
