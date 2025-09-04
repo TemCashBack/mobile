@@ -411,6 +411,11 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
                   print("Erro ao testar mapa: $e");
                 }
               });
+
+              // Configurações específicas para iOS para forçar carregamento dos tiles
+              if (_isIOS) {
+                _configureIOSMapSettings(controller);
+              }
             },
             gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{}..add(
                 Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
@@ -432,6 +437,9 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
             cameraTargetBounds: CameraTargetBounds.unbounded,
             minMaxZoomPreference: MinMaxZoomPreference(5.0, 20.0),
             // Configurações específicas para resolver problema de terreno no iOS
+            // Forçar carregamento de tiles de alta qualidade
+            tiltGesturesEnabled: true,
+            rotateGesturesEnabled: true,
           ),
           _buildSearchBar(),
           // Adicionar indicador de carregamento do mapa
@@ -793,6 +801,32 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
         snackPosition: SnackPosition.BOTTOM,
         duration: Duration(seconds: 2),
       );
+    }
+  }
+
+  // Método para configurar configurações específicas do iOS
+  void _configureIOSMapSettings(GoogleMapController controller) async {
+    if (!_isIOS) return;
+
+    try {
+      // Forçar carregamento de tiles de alta qualidade
+      await Future.delayed(Duration(milliseconds: 1000));
+
+      // Mover a câmera ligeiramente para forçar recarregamento dos tiles
+      await controller.animateCamera(CameraUpdate.zoomBy(0.01));
+      await Future.delayed(Duration(milliseconds: 500));
+      await controller.animateCamera(CameraUpdate.zoomBy(-0.01));
+
+      // Forçar tipo de mapa para terreno se necessário
+      if (_currentMapType == MapType.normal) {
+        setState(() {
+          _currentMapType = MapType.terrain;
+        });
+      }
+
+      print("Configurações específicas do iOS aplicadas com sucesso");
+    } catch (e) {
+      print("Erro ao configurar mapa iOS: $e");
     }
   }
 

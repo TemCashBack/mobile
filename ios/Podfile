@@ -37,6 +37,17 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      
+      # Configurações específicas para Google Maps
+      if target.name == 'GoogleMaps'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'GOOGLE_MAPS_IOS_SDK_VERSION=8.0.0'
+      end
+      
+      # Configurações para melhorar performance de rede
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+      config.build_settings['OTHER_LDFLAGS'] << '-ObjC'
     end
   end
 end
