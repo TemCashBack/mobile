@@ -37,6 +37,14 @@ class MapaPage extends StatelessWidget {
     Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
     CustomInfoWindowController customInfoWindowController =
         CustomInfoWindowController();
+
+    // Verificar se o LocationController está inicializado
+    if (!locationController.hasLocationPermission.value &&
+        !locationController.isLoadingLocation.value) {
+      // Solicitar permissão se ainda não foi solicitada
+      locationController.requestLocationPermission();
+    }
+
     return Scaffold(
       body: FutureBuilder(
         future: _loadCustomIcon(), // Carregar o ícone customizado
@@ -123,6 +131,36 @@ class MapaPage extends StatelessWidget {
                   return Obx(() {
                     empresas = snapshot.data!.docs;
                     if (locationController.currentPosition.value == null) {
+                      if (!locationController.hasLocationPermission.value) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.location_off,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'Permissão de localização necessária',
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Para usar o mapa, é necessário permitir o acesso à localização.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.grey[600]),
+                              ),
+                              SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => locationController
+                                    .requestLocationPermission(),
+                                child: Text('Solicitar Permissão'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       return Center(
                           child: ProgressIndicatorCustom()); // Carregando
                     } else {

@@ -50,9 +50,7 @@
 	<key>GMSApiKey</key>
 	<string>AIzaSyC6Q5EC_3hYvdCpkMGje4Kv2z5_mE12fkE</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Precisamos da sua localização para mostrar o mapa.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Usamos sua localização para mostrar estabelecimentos próximos e habilitar check-ins.</string>
+	<string>Usamos sua localização para mostrar o mapa e estabelecimentos próximos, habilitar check-ins e melhorar sua experiência.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Podemos usar sua localização para enviar alertas relevantes e habilitar check-ins próximos, mesmo quando o app não estiver em uso.</string>
 	<key>NSLocationAlwaysUsageDescription</key>

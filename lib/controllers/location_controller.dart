@@ -41,6 +41,9 @@ class LocationController extends GetxController {
       }
     } catch (e) {
       print("Erro ao inicializar serviços de localização: $e");
+      // Em caso de erro, definir valores padrão para evitar crashes
+      hasLocationPermission.value = false;
+      isLocationServiceEnabled.value = false;
     }
   }
 
@@ -98,6 +101,7 @@ class LocationController extends GetxController {
                 ? LocationAccuracy.best
                 : LocationAccuracy.bestForNavigation,
             distanceFilter: 10, // Atualizar apenas quando mover 10 metros
+            timeLimit: const Duration(seconds: 10), // Timeout para iOS
           ),
         ).listen(
           (Position position) {
@@ -109,10 +113,14 @@ class LocationController extends GetxController {
           },
           onError: (error) {
             print("Erro no stream de localização: $error");
+            // Em caso de erro no stream, não quebrar o app
+            hasLocationPermission.value = false;
           },
         );
       } catch (e) {
         print("Erro ao configurar stream de localização: $e");
+        // Em caso de erro, definir permissão como false
+        hasLocationPermission.value = false;
       }
 
       // Obter posição atual de forma mais segura
