@@ -48,7 +48,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Usamos a câmera para selfie de verificação e envio de comprovantes de compra.</string>
 	<key>GMSApiKey</key>
-	<string>AIzaSyC6Q5EC_3hYvdCpkMGje4Kv2z5_mE12fkE</string>
+	<string>AIzaSyDTruUfrPofVhkGeyThTvr841lvHV_ven0</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Usamos sua localização para mostrar o mapa e estabelecimentos próximos, habilitar check-ins e melhorar sua experiência.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
