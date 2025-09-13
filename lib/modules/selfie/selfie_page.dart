@@ -11,7 +11,6 @@ class SelfiePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SelfieController controller = Get.put(SelfieController());
     return Scaffold(
       appBar: AppBar(
         title: Text('Selfie'),
@@ -23,6 +22,43 @@ class SelfiePage extends StatelessWidget {
       ),
       body: Obx(
         () {
+          // Se a permissão não foi concedida, mostra uma mensagem
+          if (!controller.isPermissionGranted.value) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.camera_alt_outlined,
+                    size: 80,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Permissão da Câmera Necessária',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Para tirar selfies, é necessário permitir o acesso à câmera.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.checkCameraPermission();
+                    },
+                    child: Text('Solicitar Permissão'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           if (!controller.isCameraInitialized.value ||
               controller.cameraController == null) {
             return Center(child: ProgressIndicatorCustom());
