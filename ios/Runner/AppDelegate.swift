@@ -18,7 +18,7 @@ import GoogleMaps
     }
     
     // Configuração específica para Google Maps
-    GMSServices.provideAPIKey("AIzaSyC6Q5EC_3hYvdCpkMGje4Kv2z5_mE12fkE")
+    GMSServices.provideAPIKey("AIzaSyDTruUfrPofVhkGeyThTvr841lvHV_ven0")
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

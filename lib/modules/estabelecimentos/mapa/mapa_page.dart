@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clippy_flutter/clippy_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +13,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mobile/controllers/location_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
-import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
@@ -317,11 +314,8 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
               SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () async {
-                  // No iOS, abrir configurações do sistema
                   if (Platform.isIOS) {
-                    // Tentar abrir configurações do app
                     try {
-                      // Implementar abertura das configurações do iOS
                       print("Abrir configurações do iOS");
                     } catch (e) {
                       print("Erro ao abrir configurações: $e");
@@ -380,12 +374,6 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
         fit: StackFit.expand,
         children: [
           GoogleMap(
-            onTap: (position) {
-              // Ocultar info window se estiver visível
-            },
-            onCameraMove: (position) {
-              // Atualizar posição da câmera se necessário
-            },
             markers: Set<Marker>.of(markers.values),
             mapType: _currentMapType, // Garantir que seja normal (terreno)
             initialCameraPosition: CameraPosition(
@@ -416,14 +404,9 @@ class _MapaPageState extends State<MapaPage> with WidgetsBindingObserver {
                 Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
             myLocationButtonEnabled: true,
             myLocationEnabled: true,
-            // Configurações adicionais para melhorar o carregamento
             compassEnabled: true,
             mapToolbarEnabled: true,
-            zoomControlsEnabled:
-                false, // Controles de zoom nativos do iOS/Android
-            // Configurações específicas para melhorar a qualidade da imagem
-            liteModeEnabled:
-                false, // Desabilitar modo lite para melhor qualidade
+            zoomControlsEnabled: true,
           ),
           _buildSearchBar(),
           // Adicionar indicador de carregamento do mapa

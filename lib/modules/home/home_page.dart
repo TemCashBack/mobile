@@ -246,9 +246,9 @@ class HomePage extends StatelessWidget {
                 indent: 20,
                 endIndent: 20,
               ),
-              Container(
-                padding: EdgeInsets.fromLTRB(20, 5, 20, 0),
-                child: SingleChildScrollView(
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(20, 5, 20, 0),
                   child: StreamBuilder<List<Map<String, dynamic>>>(
                     stream: cashbackRepository.getLast10Document(),
                     builder: (context, snapshot) {
@@ -279,8 +279,6 @@ class HomePage extends StatelessWidget {
                           }
                           return ListView.builder(
                             itemCount: joinedData.length * 2 - 1,
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
                             itemBuilder: (BuildContext context, int index) {
                               if (index.isOdd) {
                                 return Divider();
