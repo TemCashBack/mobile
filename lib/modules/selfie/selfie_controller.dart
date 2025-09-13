@@ -18,6 +18,7 @@ class SelfieController extends GetxController {
   RxDouble cameraAspectRatio = 1.0.obs;
   RxBool isFrontCamera = true.obs;
   RxBool isPermissionGranted = false.obs;
+  RxBool isRequestingPermission = false.obs;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   late CameraDescription selectedCamera;
@@ -28,33 +29,54 @@ class SelfieController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('=== INICIALIZANDO SELFIECONTROLLER ===');
     checkCameraPermission();
   }
 
   Future<void> checkCameraPermission() async {
+    // Evita múltiplas solicitações simultâneas
+    if (isRequestingPermission.value) {
+      print('Já está solicitando permissão, ignorando nova solicitação');
+      return;
+    }
+
     try {
+      isRequestingPermission.value = true;
+      print('Verificando permissão da câmera...');
+
       // Verifica se a permissão da câmera foi concedida
       final status = await Permission.camera.status;
+      print('Status da permissão: $status');
 
       if (status.isGranted) {
+        print('Permissão já concedida, inicializando câmera...');
         isPermissionGranted.value = true;
         await initializeCamera();
-      } else if (status.isDenied) {
-        // Solicita permissão se foi negada
+      } else if (status.isPermanentlyDenied) {
+        print('Permissão negada permanentemente');
+        _showPermissionPermanentlyDeniedMessage();
+      } else {
+        // Para todos os outros casos (isDenied, isNotDetermined, etc.)
+        print('Solicitando permissão da câmera... Status atual: $status');
         final result = await Permission.camera.request();
+        print('Resultado da solicitação: $result');
+
         if (result.isGranted) {
+          print('Permissão concedida pelo usuário');
           isPermissionGranted.value = true;
           await initializeCamera();
         } else {
+          print('Permissão negada pelo usuário');
           _showPermissionDeniedMessage();
         }
-      } else if (status.isPermanentlyDenied) {
-        _showPermissionPermanentlyDeniedMessage();
       }
     } catch (e) {
       print('Erro ao verificar permissão da câmera: $e');
       Get.snackbar('Erro', 'Erro ao verificar permissão da câmera.',
           snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isRequestingPermission.value = false;
+      print('Finalizou verificação de permissão');
     }
   }
 
@@ -65,6 +87,84 @@ class SelfieController extends GetxController {
       snackPosition: SnackPosition.BOTTOM,
       duration: Duration(seconds: 5),
     );
+  }
+
+  // Método para forçar solicitação de permissão (chamado pelo botão)
+  Future<void> requestCameraPermission() async {
+    if (isRequestingPermission.value) {
+      print('Já está solicitando permissão, ignorando nova solicitação');
+      return;
+    }
+
+    try {
+      isRequestingPermission.value = true;
+      print('=== INICIANDO SOLICITAÇÃO DE PERMISSÃO ===');
+
+      // Verifica o status atual antes de solicitar
+      final currentStatus = await Permission.camera.status;
+      print('Status atual da permissão: $currentStatus');
+
+      // Força a solicitação independente do status
+      print('Solicitando permissão da câmera...');
+      final result = await Permission.camera.request();
+      print('Resultado da solicitação: $result');
+
+      // Verifica o status após a solicitação
+      final newStatus = await Permission.camera.status;
+      print('Novo status após solicitação: $newStatus');
+
+      if (result.isGranted || newStatus.isGranted) {
+        print('✅ Permissão concedida pelo usuário');
+        isPermissionGranted.value = true;
+        await initializeCamera();
+      } else if (result.isPermanentlyDenied || newStatus.isPermanentlyDenied) {
+        print('❌ Permissão negada permanentemente');
+        _showPermissionPermanentlyDeniedMessage();
+      } else {
+        print('❌ Permissão negada pelo usuário');
+        _showPermissionDeniedMessage();
+      }
+    } catch (e) {
+      print('❌ Erro ao solicitar permissão da câmera: $e');
+      Get.snackbar(
+          'Erro', 'Erro ao solicitar permissão da câmera: ${e.toString()}',
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isRequestingPermission.value = false;
+      print('=== FINALIZOU SOLICITAÇÃO DE PERMISSÃO ===');
+    }
+  }
+
+  // Método para testar se o permission_handler está funcionando
+  Future<void> testPermissionHandler() async {
+    try {
+      print('=== TESTANDO PERMISSION_HANDLER ===');
+
+      // Testa se consegue acessar o status
+      final status = await Permission.camera.status;
+      print('Status da câmera: $status');
+
+      // Testa se consegue acessar outras permissões para comparar
+      final locationStatus = await Permission.location.status;
+      print('Status da localização: $locationStatus');
+
+      // Verifica se o dispositivo tem câmera
+      final cameras = await availableCameras();
+      print('Câmeras disponíveis: ${cameras.length}');
+    } catch (e) {
+      print('Erro ao testar permission_handler: $e');
+    }
+  }
+
+  // Método para resetar o estado de permissão (útil para debug)
+  void resetPermissionState() {
+    isPermissionGranted.value = false;
+    isRequestingPermission.value = false;
+    isCameraInitialized.value = false;
+    if (cameraController != null) {
+      cameraController!.dispose();
+      cameraController = null;
+    }
   }
 
   void _showPermissionPermanentlyDeniedMessage() {

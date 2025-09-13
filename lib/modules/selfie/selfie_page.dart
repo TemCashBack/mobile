@@ -48,12 +48,26 @@ class SelfiePage extends StatelessWidget {
                     style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      controller.checkCameraPermission();
-                    },
-                    child: Text('Solicitar Permissão'),
-                  ),
+                  if (controller.isRequestingPermission.value)
+                    CircularProgressIndicator()
+                  else
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.requestCameraPermission();
+                          },
+                          child: Text('Solicitar Permissão'),
+                        ),
+                        SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () {
+                            controller.testPermissionHandler();
+                          },
+                          child: Text('Testar Permission Handler'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             );
