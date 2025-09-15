@@ -47,14 +47,32 @@ class SelfieController extends GetxController {
       // Verifica se a permissão da câmera foi concedida
       final status = await Permission.camera.status;
       print('Status da permissão: $status');
+      print(
+          'Status detalhado - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}');
 
       if (status.isGranted) {
         print('Permissão já concedida, inicializando câmera...');
         isPermissionGranted.value = true;
         await _initializeCameraSafely();
       } else if (status.isPermanentlyDenied) {
-        print('Permissão negada permanentemente');
-        _showPermissionPermanentlyDeniedMessage();
+        print('Permissão negada permanentemente - iOS específico');
+        // No iOS, às vezes o status pode ser incorreto, tentar solicitar mesmo assim
+        if (Platform.isIOS) {
+          print(
+              'iOS: Tentando solicitar permissão mesmo com status permanentlyDenied');
+          final result = await Permission.camera.request();
+          print('Resultado da solicitação no iOS: $result');
+
+          if (result.isGranted) {
+            print('✅ Permissão concedida no iOS após tentativa');
+            isPermissionGranted.value = true;
+            await _initializeCameraSafely();
+          } else {
+            _showPermissionPermanentlyDeniedMessage();
+          }
+        } else {
+          _showPermissionPermanentlyDeniedMessage();
+        }
       } else {
         // Para todos os outros casos (isDenied, isNotDetermined, etc.)
         print('Solicitando permissão da câmera... Status atual: $status');
@@ -143,6 +161,8 @@ class SelfieController extends GetxController {
       // Testa se consegue acessar o status
       final status = await Permission.camera.status;
       print('Status da câmera: $status');
+      print(
+          'Status detalhado - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}');
 
       // Testa se consegue acessar outras permissões para comparar
       final locationStatus = await Permission.location.status;
@@ -151,6 +171,18 @@ class SelfieController extends GetxController {
       // Verifica se o dispositivo tem câmera
       final cameras = await availableCameras();
       print('Câmeras disponíveis: ${cameras.length}');
+
+      // Teste específico para iOS
+      if (Platform.isIOS) {
+        print('=== TESTE ESPECÍFICO iOS ===');
+        print('Tentando solicitar permissão mesmo com status atual...');
+        final requestResult = await Permission.camera.request();
+        print('Resultado da solicitação: $requestResult');
+
+        // Verificar status após solicitação
+        final newStatus = await Permission.camera.status;
+        print('Novo status após solicitação: $newStatus');
+      }
     } catch (e) {
       print('Erro ao testar permission_handler: $e');
     }
