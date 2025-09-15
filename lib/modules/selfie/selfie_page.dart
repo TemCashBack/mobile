@@ -5,9 +5,8 @@ import 'package:mobile/modules/selfie/selfie_controller.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
-class SelfiePage extends StatelessWidget {
-  SelfiePage({super.key});
-  final SelfieController controller = Get.put(SelfieController());
+class SelfiePage extends GetView<SelfieController> {
+  const SelfiePage({super.key});
 
   @override
   Widget build(BuildContext context) {
