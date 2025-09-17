@@ -78,33 +78,17 @@ class SelfiePage extends GetView<SelfieController> {
           }
           return Stack(
             children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.75,
-                    child: Transform(
-                      alignment: Alignment.center,
-                      transform: controller.isFrontCamera.value
-                          ? Matrix4.rotationX(3.14159)
-                          : Matrix4.rotationX(3.14159),
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: controller.isFrontCamera.value
-                            ? Matrix4.rotationX(-3.14159)
-                            : Matrix4.rotationY(3.14159),
-                        child: Transform.rotate(
-                          angle: -1.57,
-                          child: AspectRatio(
-                            aspectRatio: controller.cameraAspectRatio.value,
-                            child: CameraPreview(controller.cameraController!),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+              // Preview da câmera com orientação correta
+              Positioned.fill(
+                child: AspectRatio(
+                  aspectRatio: controller.cameraAspectRatio.value,
+                  child: controller.isFrontCamera.value
+                      ? Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()..scale(-1.0, 1.0),
+                          child: CameraPreview(controller.cameraController!),
+                        )
+                      : CameraPreview(controller.cameraController!),
                 ),
               ),
               Positioned(

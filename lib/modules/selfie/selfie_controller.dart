@@ -29,42 +29,30 @@ class SelfieController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('=== INICIALIZANDO SELFIECONTROLLER ===');
     checkCameraPermission();
   }
 
   Future<void> checkCameraPermission() async {
     // Evita múltiplas solicitações simultâneas
     if (isRequestingPermission.value) {
-      print('Já está solicitando permissão, ignorando nova solicitação');
       return;
     }
 
     try {
       isRequestingPermission.value = true;
-      print('Verificando permissão da câmera...');
 
       // Verifica se a permissão da câmera foi concedida
       final status = await Permission.camera.status;
-      print('Status da permissão: $status');
-      print(
-          'Status detalhado - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}');
 
       if (status.isGranted) {
-        print('Permissão já concedida, inicializando câmera...');
         isPermissionGranted.value = true;
         await _initializeCameraSafely();
       } else if (status.isPermanentlyDenied) {
-        print('Permissão negada permanentemente - iOS específico');
         // No iOS, às vezes o status pode ser incorreto, tentar solicitar mesmo assim
         if (Platform.isIOS) {
-          print(
-              'iOS: Tentando solicitar permissão mesmo com status permanentlyDenied');
           final result = await Permission.camera.request();
-          print('Resultado da solicitação no iOS: $result');
 
           if (result.isGranted) {
-            print('✅ Permissão concedida no iOS após tentativa');
             isPermissionGranted.value = true;
             await _initializeCameraSafely();
           } else {
@@ -74,27 +62,20 @@ class SelfieController extends GetxController {
           _showPermissionPermanentlyDeniedMessage();
         }
       } else {
-        // Para todos os outros casos (isDenied, isNotDetermined, etc.)
-        print('Solicitando permissão da câmera... Status atual: $status');
         final result = await Permission.camera.request();
-        print('Resultado da solicitação: $result');
 
         if (result.isGranted) {
-          print('Permissão concedida pelo usuário');
           isPermissionGranted.value = true;
           await _initializeCameraSafely();
         } else {
-          print('Permissão negada pelo usuário');
           _showPermissionDeniedMessage();
         }
       }
     } catch (e) {
-      print('Erro ao verificar permissão da câmera: $e');
       Get.snackbar('Erro', 'Erro ao verificar permissão da câmera.',
           snackPosition: SnackPosition.BOTTOM);
     } finally {
       isRequestingPermission.value = false;
-      print('Finalizou verificação de permissão');
     }
   }
 
@@ -110,78 +91,52 @@ class SelfieController extends GetxController {
   // Método para forçar solicitação de permissão (chamado pelo botão)
   Future<void> requestCameraPermission() async {
     if (isRequestingPermission.value) {
-      print('Já está solicitando permissão, ignorando nova solicitação');
       return;
     }
 
     try {
       isRequestingPermission.value = true;
-      print('=== INICIANDO SOLICITAÇÃO DE PERMISSÃO ===');
 
-      // Verifica o status atual antes de solicitar
       final currentStatus = await Permission.camera.status;
-      print('Status atual da permissão: $currentStatus');
 
-      // Força a solicitação independente do status
-      print('Solicitando permissão da câmera...');
       final result = await Permission.camera.request();
-      print('Resultado da solicitação: $result');
 
       // Verifica o status após a solicitação
       final newStatus = await Permission.camera.status;
-      print('Novo status após solicitação: $newStatus');
 
       if (result.isGranted || newStatus.isGranted) {
-        print('✅ Permissão concedida pelo usuário');
         isPermissionGranted.value = true;
         await _initializeCameraSafely();
       } else if (result.isPermanentlyDenied || newStatus.isPermanentlyDenied) {
-        print('❌ Permissão negada permanentemente');
         _showPermissionPermanentlyDeniedMessage();
       } else {
-        print('❌ Permissão negada pelo usuário');
         _showPermissionDeniedMessage();
       }
     } catch (e) {
-      print('❌ Erro ao solicitar permissão da câmera: $e');
       Get.snackbar(
           'Erro', 'Erro ao solicitar permissão da câmera: ${e.toString()}',
           snackPosition: SnackPosition.BOTTOM);
     } finally {
       isRequestingPermission.value = false;
-      print('=== FINALIZOU SOLICITAÇÃO DE PERMISSÃO ===');
     }
   }
 
   // Método para testar se o permission_handler está funcionando
   Future<void> testPermissionHandler() async {
     try {
-      print('=== TESTANDO PERMISSION_HANDLER ===');
-
       // Testa se consegue acessar o status
       final status = await Permission.camera.status;
-      print('Status da câmera: $status');
-      print(
-          'Status detalhado - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}');
 
       // Testa se consegue acessar outras permissões para comparar
       final locationStatus = await Permission.location.status;
-      print('Status da localização: $locationStatus');
 
       // Verifica se o dispositivo tem câmera
       final cameras = await availableCameras();
-      print('Câmeras disponíveis: ${cameras.length}');
 
       // Teste específico para iOS
       if (Platform.isIOS) {
-        print('=== TESTE ESPECÍFICO iOS ===');
-        print('Tentando solicitar permissão mesmo com status atual...');
         final requestResult = await Permission.camera.request();
-        print('Resultado da solicitação: $requestResult');
-
-        // Verificar status após solicitação
         final newStatus = await Permission.camera.status;
-        print('Novo status após solicitação: $newStatus');
       }
     } catch (e) {
       print('Erro ao testar permission_handler: $e');
@@ -232,11 +187,7 @@ class SelfieController extends GetxController {
     }
 
     try {
-      print('=== INICIALIZAÇÃO SEGURA DA CÂMERA ===');
-
-      // Dispose da câmera anterior se existir
       if (cameraController != null) {
-        print('Dispose da câmera anterior...');
         await cameraController!.dispose();
         cameraController = null;
         isCameraInitialized.value = false;
@@ -248,8 +199,6 @@ class SelfieController extends GetxController {
         throw Exception('Permissão da câmera não foi concedida');
       }
 
-      // Buscar câmeras disponíveis
-      print('Buscando câmeras disponíveis...');
       cameras = await availableCameras();
 
       if (cameras == null || cameras!.isEmpty) {
@@ -277,17 +226,13 @@ class SelfieController extends GetxController {
       isFrontCamera.value =
           selectedCameraDesc.lensDirection == CameraLensDirection.front;
 
-      print('✅ Câmera selecionada: ${selectedCamera.name}');
-
       // Configurações específicas para iOS (baseado no LocationController)
       ResolutionPreset resolutionPreset = ResolutionPreset.medium;
       if (Platform.isIOS) {
-        print('🔧 Configurações específicas para iOS aplicadas');
         resolutionPreset = ResolutionPreset.low; // Resolução menor para iOS
       }
 
       // Criar controller com configurações seguras
-      print('Criando CameraController...');
       cameraController = CameraController(
         selectedCamera,
         resolutionPreset,
@@ -295,8 +240,6 @@ class SelfieController extends GetxController {
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
-      // Inicialização com timeout (como no LocationController)
-      print('Inicializando CameraController...');
       await cameraController!.initialize().timeout(
         Duration(
             seconds: 15), // Timeout de 15 segundos como no LocationController
@@ -308,13 +251,10 @@ class SelfieController extends GetxController {
       if (cameraController!.value.isInitialized) {
         cameraAspectRatio.value = cameraController!.value.aspectRatio;
         isCameraInitialized.value = true;
-        print(
-            '✅ Câmera inicializada com sucesso! Aspect ratio: ${cameraAspectRatio.value}');
       } else {
         throw Exception('CameraController não foi inicializado corretamente');
       }
     } catch (e) {
-      print('❌ Erro na inicialização segura da câmera: $e');
       isCameraInitialized.value = false;
 
       // Dispose do controller em caso de erro
@@ -343,11 +283,8 @@ class SelfieController extends GetxController {
 
   Future<void> initializeCamera() async {
     try {
-      print('=== INICIANDO INICIALIZAÇÃO DA CÂMERA ===');
-
       // Dispose da câmera anterior se existir
       if (cameraController != null) {
-        print('Dispose da câmera anterior...');
         await cameraController!.dispose();
         cameraController = null;
         isCameraInitialized.value = false;
@@ -356,13 +293,9 @@ class SelfieController extends GetxController {
       // Aguarda um pouco para garantir que o dispose foi concluído
       await Future.delayed(Duration(milliseconds: 500));
 
-      // Verifica se há câmeras disponíveis
-      print('Buscando câmeras disponíveis...');
       cameras = await availableCameras();
-      print('Câmeras encontradas: ${cameras?.length ?? 0}');
 
       if (cameras == null || cameras!.isEmpty) {
-        print('❌ Nenhuma câmera encontrada no dispositivo');
         Get.snackbar('Erro', 'Nenhuma câmera encontrada no dispositivo.',
             snackPosition: SnackPosition.BOTTOM);
         return;
@@ -373,7 +306,6 @@ class SelfieController extends GetxController {
       CameraDescription? backCamera;
 
       for (var camera in cameras!) {
-        print('Câmera encontrada: ${camera.name} - ${camera.lensDirection}');
         if (camera.lensDirection == CameraLensDirection.front) {
           frontCamera = camera;
         } else if (camera.lensDirection == CameraLensDirection.back) {
@@ -385,13 +317,10 @@ class SelfieController extends GetxController {
       if (frontCamera != null) {
         selectedCamera = frontCamera;
         isFrontCamera.value = true;
-        print('✅ Selecionada câmera frontal: ${frontCamera.name}');
       } else if (backCamera != null) {
         selectedCamera = backCamera;
         isFrontCamera.value = false;
-        print('✅ Selecionada câmera traseira: ${backCamera.name}');
       } else {
-        print('❌ Nenhuma câmera adequada encontrada');
         Get.snackbar('Erro', 'Nenhuma câmera adequada encontrada.',
             snackPosition: SnackPosition.BOTTOM);
         return;
@@ -403,7 +332,6 @@ class SelfieController extends GetxController {
       // Configurações específicas para iOS
       ResolutionPreset resolutionPreset = ResolutionPreset.medium;
       if (Platform.isIOS) {
-        print('🔧 Configurações específicas para iOS aplicadas');
         resolutionPreset =
             ResolutionPreset.low; // Resolução ainda menor para iOS
         // Aguarda um pouco mais no iOS
@@ -411,7 +339,6 @@ class SelfieController extends GetxController {
       }
 
       // Inicializa o controlador da câmera com configurações mais conservadoras para iOS
-      print('Criando CameraController...');
       cameraController = CameraController(
         selectedCamera,
         resolutionPreset,
@@ -420,21 +347,16 @@ class SelfieController extends GetxController {
             ImageFormatGroup.jpeg, // Especifica formato JPEG explicitamente
       );
 
-      print('Inicializando CameraController...');
       await cameraController!.initialize();
 
       if (cameraController!.value.isInitialized) {
         cameraAspectRatio.value = cameraController!.value.aspectRatio;
         isCameraInitialized.value = true;
-        print(
-            '✅ Câmera inicializada com sucesso! Aspect ratio: ${cameraAspectRatio.value}');
       } else {
         throw Exception(
             'Falha ao inicializar a câmera - controller não inicializado');
       }
     } catch (e) {
-      print('❌ Erro ao inicializar câmera: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
       isCameraInitialized.value = false;
 
       // Dispose do controller em caso de erro
@@ -469,11 +391,8 @@ class SelfieController extends GetxController {
     }
 
     try {
-      print('=== ALTERNANDO CÂMERA ===');
-
       // Dispose da câmera atual
       if (cameraController != null) {
-        print('Dispose da câmera atual...');
         await cameraController!.dispose();
         cameraController = null;
         isCameraInitialized.value = false;
@@ -493,24 +412,19 @@ class SelfieController extends GetxController {
         orElse: () => cameras!.first,
       );
 
-      print(
-          'Nova câmera selecionada: ${selectedCamera.name} - ${selectedCamera.lensDirection}');
-
       // Aguarda um pouco antes de criar o novo controller
       await Future.delayed(Duration(milliseconds: 300));
 
       // Configurações específicas para iOS
       ResolutionPreset resolutionPreset = ResolutionPreset.medium;
       if (Platform.isIOS) {
-        print('🔧 Configurações específicas para iOS aplicadas (switch)');
         resolutionPreset =
             ResolutionPreset.low; // Resolução ainda menor para iOS
         // Aguarda um pouco mais no iOS
         await Future.delayed(Duration(milliseconds: 200));
       }
 
-      // Cria um novo controlador com configurações mais conservadoras
-      print('Criando novo CameraController...');
+      // Cria um novo controlador com configurações mais conservadora
       cameraController = CameraController(
         selectedCamera,
         resolutionPreset,
@@ -519,23 +433,16 @@ class SelfieController extends GetxController {
       );
 
       // Inicializa a nova câmera
-      print('Inicializando nova câmera...');
       await cameraController!.initialize();
 
       if (cameraController!.value.isInitialized) {
         cameraAspectRatio.value = cameraController!.value.aspectRatio;
         isCameraInitialized.value = true;
         isFrontCamera.value = !isFrontCamera.value;
-        print(
-            '✅ Câmera alternada com sucesso! Nova câmera: ${isFrontCamera.value ? "frontal" : "traseira"}');
       } else {
         throw Exception('Falha ao inicializar a nova câmera');
       }
     } catch (e) {
-      print('❌ Erro ao alternar câmera: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
-
-      // Dispose do controller em caso de erro
       if (cameraController != null) {
         try {
           await cameraController!.dispose();
@@ -574,7 +481,6 @@ class SelfieController extends GetxController {
       Get.toNamed(AppRoutes.HOME);
     } catch (e) {
       Get.back(); // Fecha o dialog de loading
-      print('Erro ao capturar foto: $e');
       Get.snackbar('Erro', 'Erro ao tirar a foto: ${e.toString()}',
           snackPosition: SnackPosition.BOTTOM);
     }
@@ -604,7 +510,6 @@ class SelfieController extends GetxController {
     if (cameraController != null) {
       try {
         cameraController!.dispose();
-        print('✅ CameraController disposed com sucesso');
       } catch (e) {
         print('❌ Erro ao fazer dispose do CameraController: $e');
       }
