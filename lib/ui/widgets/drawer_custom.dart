@@ -104,6 +104,21 @@ class CustomDrawer extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.fromLTRB(20, 0, 0, 0),
             leading: FaIcon(
+              FontAwesomeIcons.userXmark,
+              color: Colors.red[700],
+              size: 18,
+            ),
+            title: Text(
+              'Excluir Conta',
+              style: TextStyle(color: Colors.red[700]),
+            ),
+            onTap: () {
+              Get.toNamed(AppRoutes.EXCLUSAO_CONTA);
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+            leading: FaIcon(
               FontAwesomeIcons.doorOpen,
               color: primaryThemeColor[700],
               size: 18,
