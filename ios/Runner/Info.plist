@@ -100,6 +100,10 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>location-services</string>
