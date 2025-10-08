@@ -64,10 +64,6 @@
 		<key>LocationTemporaryUsageDescription</key>
 		<string>Precisamos de acesso temporário à sua localização para melhorar a precisão dos check-ins.</string>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-	</array>
 	<key>NSLocationUsageDescription</key>
 	<string>Este aplicativo precisa de acesso à sua localização para funcionar corretamente.</string>
 	<key>NSAppTransportSecurity</key>
