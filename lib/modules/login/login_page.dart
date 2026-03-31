@@ -102,6 +102,16 @@ class LoginPage extends StatelessWidget {
                   );
                 }
               }),
+              SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  Get.toNamed(AppRoutes.RECUPERACAO_SENHA);
+                },
+                child: Text(
+                  'Esqueceu sua senha?',
+                  style: TextStyle(color: secondaryThemeColor),
+                ),
+              ),
               SizedBox(height: 0),
               TextButton(
                 onPressed: () {

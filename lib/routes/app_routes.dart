@@ -10,4 +10,6 @@ abstract class AppRoutes {
   static const ESTABELECIMENTOS_LISTA = '/estabelecimentos_lista';
   static const ESTABELECIMENTOS_MAPA = '/estabelecimentos_mapa';
   static const CASHBACK = '/cashback';
+  static const EXCLUSAO_CONTA = '/exclusao-conta';
+  static const RECUPERACAO_SENHA = '/recuperacao-senha';
 }

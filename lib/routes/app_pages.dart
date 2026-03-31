@@ -17,6 +17,10 @@ import 'package:mobile/modules/registro/registro_binding.dart';
 import 'package:mobile/modules/registro/registro_page.dart';
 import 'package:mobile/modules/selfie/selfie_binding.dart';
 import 'package:mobile/modules/selfie/selfie_page.dart';
+import 'package:mobile/modules/exclusao_conta/exclusao_conta_binding.dart';
+import 'package:mobile/modules/exclusao_conta/exclusao_conta_page.dart';
+import 'package:mobile/modules/recuperacao_senha/recuperacao_senha_binding.dart';
+import 'package:mobile/modules/recuperacao_senha/recuperacao_senha_page.dart';
 
 import 'app_routes.dart';
 
@@ -66,6 +70,16 @@ class AppPages {
       name: AppRoutes.CASHBACK,
       page: () => CashbackPage(),
       binding: CashbackBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.EXCLUSAO_CONTA,
+      page: () => ExclusaoContaPage(),
+      binding: ExclusaoContaBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RECUPERACAO_SENHA,
+      page: () => RecuperacaoSenhaPage(),
+      binding: RecuperacaoSenhaBinding(),
     ),
   ];
 }

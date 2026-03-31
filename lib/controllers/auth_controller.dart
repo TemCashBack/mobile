@@ -90,4 +90,12 @@ class AuthController extends GetxController {
     await _auth.signOut();
     await _googleSignIn.signOut();
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
