@@ -75,7 +75,7 @@ class HomePage extends StatelessWidget {
           'Informar compras',
           style: TextStyle(color: Colors.black),
         ),
-        icon: Icon(
+        icon: FaIcon(
           FontAwesomeIcons.plus,
           color: primaryThemeColor,
           size: 15,
