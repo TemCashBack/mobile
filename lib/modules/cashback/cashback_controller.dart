@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:mobile/controllers/customer_controller.dart';
 import 'package:mobile/data/models/cashback_model.dart';
 import 'package:mobile/data/repositories/cashback_repository.dart';
-import 'package:mobile/data/repositories/used_cashback_repository.dart';
 import 'package:path/path.dart';
 
 class CashbackController extends GetxController {
@@ -24,8 +23,6 @@ class CashbackController extends GetxController {
 
   final CustomerController customerController = Get.find<CustomerController>();
   final CashbackRepository cashbackRepository = CashbackRepository();
-  final UsedCashbackRepository usedCashbackRepository =
-      UsedCashbackRepository();
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 

@@ -5,7 +5,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:mobile/controllers/auth_controller.dart';
-import 'package:mobile/controllers/maps_avalible_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/modules/cashback/cashback_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
@@ -18,8 +17,6 @@ import 'package:url_launcher/url_launcher.dart';
 class CompanyBottomSheet {
   BuildContext context;
   AuthController authController = Get.find<AuthController>();
-  MapsAvalibleController mapsAvalibleController =
-      Get.put(MapsAvalibleController());
 
   CompanyBottomSheet({required this.context});
 

@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
-import 'package:mobile/controllers/nivel_controller.dart';
-import 'package:mobile/data/repositories/checkin_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class CustomDrawer extends StatelessWidget {
   CustomDrawer({super.key});
-  final NivelController nivelController = Get.put(NivelController());
-  final CheckinRepository checkinRepository = CheckinRepository();
   final AuthController authController = Get.find<AuthController>();
 
   @override

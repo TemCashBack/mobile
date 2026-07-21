@@ -1,13 +1,11 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:mobile/controllers/nivel_controller.dart';
 import 'package:mobile/data/models/cashback_model.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/cashback_repository.dart';
@@ -20,9 +18,7 @@ import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  late FirebaseInAppMessaging fiam;
   final cashbackRepository = CashbackRepository();
-  final NivelController nivelController = NivelController();
 
   final MoneyMaskedTextController moneyController = MoneyMaskedTextController(
     leftSymbol: 'R\$ ',

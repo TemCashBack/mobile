@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:clippy_flutter/clippy_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +13,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mobile/controllers/location_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
-import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
