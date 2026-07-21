@@ -39,32 +39,38 @@ class EstabelecimentosPage extends StatelessWidget {
               color: Colors.white, // Cor do ícone do Drawer
             ),
           ),
-          bottomNavigationBar: Container(
-            constraints: BoxConstraints(maxHeight: 60.0),
-            child: Material(
-              color: Colors.black,
-              child: TabBar(
-                indicatorColor: Colors.white,
-                labelColor: secondaryThemeColor,
-                unselectedLabelColor: Colors.white,
-                tabs: [
-                  Tab(
-                    text: 'Mapa',
-                    icon: Icon(Icons.map_outlined),
-                  ),
-                  Tab(
-                    text: 'Lista',
-                    icon: Icon(Icons.list),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          body: TabBarView(
-            physics: NeverScrollableScrollPhysics(),
+          body: Column(
             children: [
-              MapaPage(),
-              ListaPage(),
+              Expanded(
+                child: TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: const [
+                    MapaPage(),
+                    ListaPage(),
+                  ],
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Material(
+                  color: Colors.black,
+                  child: TabBar(
+                    indicatorColor: Colors.white,
+                    labelColor: secondaryThemeColor,
+                    unselectedLabelColor: Colors.white,
+                    tabs: const [
+                      Tab(
+                        text: 'Mapa',
+                        icon: Icon(Icons.map_outlined),
+                      ),
+                      Tab(
+                        text: 'Lista',
+                        icon: Icon(Icons.list),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           )),
     );

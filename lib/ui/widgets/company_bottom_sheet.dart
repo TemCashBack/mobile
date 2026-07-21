@@ -8,6 +8,7 @@ import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/modules/cashback/cashback_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/utils/social_launcher.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/buttons/PhoneButton.dart';
 import 'package:mobile/ui/widgets/buttons/informar_compra_button.dart';
@@ -149,16 +150,16 @@ class CompanyBottomSheet {
                                 if (companyModel.socials.facebook != '') ...[
                                   IconButton(
                                       icon: FaIcon(FontAwesomeIcons.facebook),
-                                      onPressed: () async {
-                                        launchFacebook(
+                                      onPressed: () {
+                                        SocialLauncher.launchFacebook(
                                             companyModel.socials.facebook);
                                       }),
                                 ],
                                 if (companyModel.socials.instagram != '') ...[
                                   IconButton(
                                       icon: FaIcon(FontAwesomeIcons.instagram),
-                                      onPressed: () async {
-                                        launchInstagram(
+                                      onPressed: () {
+                                        SocialLauncher.launchInstagram(
                                             companyModel.socials.instagram);
                                       }),
                                 ],
@@ -173,8 +174,8 @@ class CompanyBottomSheet {
                                 if (companyModel.socials.linkedin != '') ...[
                                   IconButton(
                                       icon: FaIcon(FontAwesomeIcons.linkedin),
-                                      onPressed: () async {
-                                        launchLinkedin(
+                                      onPressed: () {
+                                        SocialLauncher.launchLinkedin(
                                             companyModel.socials.linkedin);
                                       }),
                                 ],
@@ -303,39 +304,11 @@ class CompanyBottomSheet {
     }
   }
 
-  launchFacebook(String facebook) async {
-    Uri uri = Uri.parse('https://www.facebook.com/{$facebook}/');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Ocorreu um erro ao abrir o facebook: $facebook';
-    }
-  }
-
-  launchInstagram(String instagram) async {
-    Uri uri = Uri.parse('https://www.instagram.com/$instagram/');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Ocorreu um erro ao abrir o instagram: $instagram';
-    }
-  }
-
   launchWhatsApp(String whatsapp) async {
-    Uri uri = Uri.parse('https://api.whatsapp.com/send?phone=$whatsapp');
+    final phone = whatsapp.replaceAll(RegExp(r'\D'), '');
+    Uri uri = Uri.parse('https://api.whatsapp.com/send?phone=$phone');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Ocorreu um erro ao abrir o whatsapp: $whatsapp';
-    }
-  }
-
-  launchLinkedin(String linkedin) async {
-    Uri uri = Uri.parse('https://www.linkedin.com/in/$linkedin/');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Ocorreu um erro ao abrir o linkedin: $linkedin';
     }
   }
 }

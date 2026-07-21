@@ -64,6 +64,7 @@ class _MapaPageState extends State<MapaPage> {
         CustomInfoWindowController();
 
     return Scaffold(
+      primary: false,
       body: FutureBuilder(
         future: _loadCustomIcon(), // Carregar o ícone customizado
         builder: (context, snapShotIcon) {

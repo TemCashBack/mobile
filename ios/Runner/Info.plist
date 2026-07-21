@@ -70,5 +70,13 @@
 	</array>
 	<key>NSLocationUsageDescription</key>
 	<string>Este aplicativo precisa de acesso à sua localização para funcionar corretamente.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram</string>
+		<string>fb</string>
+		<string>linkedin</string>
+		<string>whatsapp</string>
+		<string>https</string>
+	</array>
 </dict>
 </plist>
