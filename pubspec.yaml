@@ -36,11 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.6.6
   font_awesome_flutter: ^11.0.0
-  firebase_core: ^3.8.1
-  cloud_firestore: ^5.6.2
+  firebase_core: ^3.12.1
+  cloud_firestore: ^5.6.5
   firebase_core_web: ^2.18.2
   flutter_masked_text2: ^0.9.1
-  firebase_auth: ^5.5.0
+  firebase_auth: ^5.5.1
   intl: ^0.20.2
   geolocator: ^13.0.2
   url_launcher: ^6.3.1
@@ -53,14 +53,14 @@ dependencies:
   map_launcher: ^3.5.0
   flutter_launcher_icons: ^0.14.4
   flutter_local_notifications: ^18.0.1
-  firebase_app_installations: ^0.3.1+7
-  firebase_messaging: ^15.2.1
-  firebase_in_app_messaging: ^0.8.1+2
+  firebase_app_installations: ^0.3.2+4
+  firebase_messaging: ^15.2.4
+  firebase_in_app_messaging: ^0.8.1+4
   flutter_stepper: ^0.0.1
   http: ^1.2.2
   # Pacote location removido - não estava sendo utilizado
   flutter_svg: ^2.0.17
-  firebase_storage: ^12.4.0
+  firebase_storage: ^12.4.4
   image_cropper: ^8.1.0
   path: ^1.9.0
   image_picker: ^1.1.2
