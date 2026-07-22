@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile/core/constants/firestore_collections.dart';
 import 'package:mobile/data/models/customer_model.dart';
 
 class CustomerRepository {
@@ -6,39 +7,35 @@ class CustomerRepository {
   final firestore = FirebaseFirestore.instance;
 
   CustomerRepository() {
-    customerCollection = firestore.collection('customers');
+    customerCollection = firestore.collection(FirestoreCollections.customers);
   }
 
   Future<void> registerCustomer(CustomerModel customer) async {
-    customerCollection.add(customer.toJson());
+    await customerCollection.add(customer.toJson());
   }
 
-  Future<DocumentSnapshot> getCustomerByUID(String uid) async {
-    QuerySnapshot customerSnapshot =
+  Future<DocumentSnapshot?> getCustomerByUID(String uid) async {
+    final customerSnapshot =
         await customerCollection.where('uid', isEqualTo: uid).get();
-    String docId = customerSnapshot.docs[0].id;
-    return await customerCollection.doc(docId).get();
+    if (customerSnapshot.docs.isEmpty) return null;
+    return customerSnapshot.docs.first;
   }
 
   Future<void> updateFCMToken(String uid, String fcmToken) async {
-    QuerySnapshot customerSnapshot =
+    final customerSnapshot =
         await customerCollection.where('uid', isEqualTo: uid).get();
-    String docId = customerSnapshot.docs[0].id;
-    return await customerCollection.doc(docId).update({"fcmToken": fcmToken});
+    if (customerSnapshot.docs.isEmpty) return;
+
+    final docId = customerSnapshot.docs.first.id;
+    await customerCollection.doc(docId).update({'fcmToken': fcmToken});
   }
 
   Future<void> updatePhotoURL(String uid, String photoURL) async {
-    QuerySnapshot customerSnapshot =
+    final customerSnapshot =
         await customerCollection.where('uid', isEqualTo: uid).get();
 
-    if (customerSnapshot.docs.isNotEmpty) {
-      DocumentSnapshot document = customerSnapshot.docs.first;
-      await document.reference.update({
-        'photoURL': photoURL,
-      });
-      print("Documento atualizado com sucesso!");
-    } else {
-      print("Documento não encontrado!");
-    }
+    if (customerSnapshot.docs.isEmpty) return;
+
+    await customerSnapshot.docs.first.reference.update({'photoURL': photoURL});
   }
 }

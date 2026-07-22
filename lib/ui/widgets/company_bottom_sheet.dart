@@ -23,7 +23,7 @@ class CompanyBottomSheet {
 
   double distance = 0.0;
 
-  CashbackController cashbackController = Get.put(CashbackController());
+  CashbackController get cashbackController => Get.find<CashbackController>();
 
   showAlert(String mensagem) {
     showDialog(

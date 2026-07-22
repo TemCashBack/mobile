@@ -1,4 +1,5 @@
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 
 class FirebaseInAppMessagingController extends GetxController {
@@ -11,7 +12,13 @@ class FirebaseInAppMessagingController extends GetxController {
   }
 
   void _initInAppMessaging() {
-    fiam.setMessagesSuppressed(false);
-    fiam.triggerEvent("app_open");
+    if (kIsWeb) return;
+
+    try {
+      fiam.setMessagesSuppressed(false);
+      fiam.triggerEvent('app_open');
+    } catch (_) {
+      // In-app messaging não é suportado na web.
+    }
   }
 }

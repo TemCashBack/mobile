@@ -10,9 +10,12 @@ import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class RegistroController extends GetxController {
+  RegistroController({required this.customerRepository});
+
+  final CustomerRepository customerRepository;
+
   var currentStep = 0.obs;
 
-  // Controladores de texto
   final emailController = TextEditingController();
   final nomeController = TextEditingController();
   final cepController = TextEditingController();
@@ -25,7 +28,6 @@ class RegistroController extends GetxController {
   final confirmPasswordController = TextEditingController();
   final codigoConviteController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final CustomerRepository customerRepository = CustomerRepository();
 
   // Validações
 
@@ -228,5 +230,21 @@ class RegistroController extends GetxController {
       Get.back();
       Get.defaultDialog(title: 'Erro', middleText: '$e');
     }
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    nomeController.dispose();
+    cepController.dispose();
+    ruaController.dispose();
+    cidadeController.dispose();
+    estadoController.dispose();
+    numeroController.dispose();
+    bairroController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    codigoConviteController.dispose();
+    super.onClose();
   }
 }

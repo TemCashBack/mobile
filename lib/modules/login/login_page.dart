@@ -5,20 +5,15 @@ import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends GetView<LoginController> {
   LoginPage({super.key});
-
-  final LoginController loginController = Get.put(LoginController());
-
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.all(40),
+          padding: const EdgeInsets.all(40),
           color: Colors.black,
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
@@ -30,12 +25,10 @@ class LoginPage extends StatelessWidget {
                 'lib/ui/assets/logo.png',
                 width: MediaQuery.of(context).size.width * 0.6,
               ),
-              SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               TextField(
                 cursorColor: Colors.grey,
-                controller: emailController,
+                controller: controller.emailController,
                 decoration: InputDecoration(
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: primaryThemeColor, width: 1),
@@ -46,18 +39,16 @@ class LoginPage extends StatelessWidget {
                     Icons.email,
                     color: primaryThemeColor,
                   ),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 style: TextStyle(color: Colors.grey[700]),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Obx(
                 () => TextField(
                   cursorColor: Colors.grey,
-                  obscureText: !loginController.isPasswordVisible.value,
-                  controller: passwordController,
+                  obscureText: !controller.isPasswordVisible.value,
+                  controller: controller.passwordController,
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderSide:
@@ -71,45 +62,44 @@ class LoginPage extends StatelessWidget {
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        loginController.isPasswordVisible.value
+                        controller.isPasswordVisible.value
                             ? Icons.visibility
                             : Icons.visibility_off,
                         color: primaryThemeColor,
                       ),
-                      onPressed: loginController.togglePasswordVisibility,
+                      onPressed: controller.togglePasswordVisibility,
                     ),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
-                  style:
-                      TextStyle(color: const Color.fromARGB(255, 43, 43, 43)),
+                  style: const TextStyle(
+                      color: Color.fromARGB(255, 43, 43, 43)),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Obx(() {
-                if (loginController.isLoading.value) {
-                  return ProgressIndicatorCustom();
-                } else {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final email = emailController.text.trim();
-                      final password = passwordController.text.trim();
-                      loginController.loginWithEmail(email, password);
-                    },
-                    child: Text(
-                      'ENTRAR',
-                      style: TextStyle(color: primaryThemeColor, fontSize: 16),
-                    ),
-                  );
+                if (controller.isLoading.value) {
+                  return const ProgressIndicatorCustom();
                 }
+
+                return ElevatedButton(
+                  onPressed: () {
+                    controller.loginWithEmail(
+                      controller.emailController.text.trim(),
+                      controller.passwordController.text.trim(),
+                    );
+                  },
+                  child: Text(
+                    'ENTRAR',
+                    style: TextStyle(color: primaryThemeColor, fontSize: 16),
+                  ),
+                );
               }),
-              SizedBox(height: 0),
               TextButton(
-                onPressed: () {
-                  Get.toNamed(
-                      AppRoutes.REGISTRO); // Navegar para a tela de registro
-                },
-                child: Text('Criar uma conta',
-                    style: TextStyle(color: secondaryThemeColor)),
+                onPressed: () => Get.toNamed(AppRoutes.REGISTRO),
+                child: Text(
+                  'Criar uma conta',
+                  style: TextStyle(color: secondaryThemeColor),
+                ),
               ),
             ],
           ),

@@ -13,13 +13,12 @@ import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
-class ListaPage extends StatelessWidget {
+class ListaPage extends GetView<ListaController> {
   const ListaPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final ListaController controller = Get.put(ListaController());
-    final LocationController locationController = Get.put(LocationController());
+    final locationController = Get.find<LocationController>();
     TextEditingController searchController = TextEditingController();
     List<DocumentSnapshot> empresas = [];
     List<DocumentSnapshot> categories = [];

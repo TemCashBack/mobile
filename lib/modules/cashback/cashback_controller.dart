@@ -11,24 +11,29 @@ import 'package:mobile/data/repositories/cashback_repository.dart';
 import 'package:path/path.dart';
 
 class CashbackController extends GetxController {
+  CashbackController({
+    required this.cashbackRepository,
+    required this.customerController,
+  });
+
+  final CashbackRepository cashbackRepository;
+  final CustomerController customerController;
+
   var companyId = ''.obs;
   var currentStep = 0.obs;
-  var imagePath = "".obs;
+  var imagePath = ''.obs;
   var valorCompra = 0.0.obs;
   var cashback = 0.0.obs;
   var usedCashback = 0.0.obs;
   var utilizaValor = 0.0.obs;
-
   RxBool isLoading = false.obs;
-
-  final CustomerController customerController = Get.find<CustomerController>();
-  final CashbackRepository cashbackRepository = CashbackRepository();
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  @override
-  void onInit() {
-    super.onInit();
+  void resetFlow() {
+    currentStep.value = 0;
+    imagePath.value = '';
+    resetValues();
     loadCashbackBalance();
   }
 
@@ -40,14 +45,12 @@ class CashbackController extends GetxController {
   }
 
   Future<String> saveCashBack() async {
-    var dateTime = DateTime.now();
-    var onlyDate = DateFormat("yyyy-MM-dd").format(dateTime);
+    final dateTime = DateTime.now();
+    final onlyDate = DateFormat('yyyy-MM-dd').format(dateTime);
     cashback.value = valorCompra.value * (5 / 100);
-    String downloadUrl = "";
-    //salva a imagem
-    downloadUrl = await _uploadImageToFirebase(imagePath.value);
+    final downloadUrl = await _uploadImageToFirebase(imagePath.value);
 
-    CashbackModel cashbackModel = CashbackModel(
+    final cashbackModel = CashbackModel(
       companyId: companyId.value,
       customerId: customerController.customerId.value,
       valor: valorCompra.value,
@@ -59,31 +62,28 @@ class CashbackController extends GetxController {
       utilizado: false,
     );
 
-    return await cashbackRepository.save(cashbackModel).then((id) {
-      isLoading.value = false;
-      resetValues();
-      return id;
-    });
+    final id = await cashbackRepository.save(cashbackModel);
+    isLoading.value = false;
+    resetValues();
+    return id;
   }
 
-  Future<String> _uploadImageToFirebase(String imagePath) async {
-    String fileName = basename(imagePath);
-    Reference ref = _storage.ref().child('comprovante/$fileName');
-    File file = File(imagePath);
-    await ref.putFile(file);
-
-    String downloadUrl = await ref.getDownloadURL();
-    return downloadUrl;
+  Future<String> _uploadImageToFirebase(String path) async {
+    final fileName = basename(path);
+    final ref = _storage.ref().child('comprovante/$fileName');
+    await ref.putFile(File(path));
+    return ref.getDownloadURL();
   }
 
   Future<void> loadCashbackBalance() async {
-    double balance = await cashbackRepository.getCashbackBalance();
-    usedCashback.value = balance;
+    final customerId = customerController.customerId.value;
+    if (customerId.isEmpty) return;
+    usedCashback.value = await cashbackRepository.getCashbackBalance(customerId);
   }
 
   void nextStep() {
-    if (currentStep < 3) {
-      currentStep++;
+    if (currentStep.value < 3) {
+      currentStep.value++;
     }
   }
 
@@ -92,16 +92,24 @@ class CashbackController extends GetxController {
   }
 
   void previousStep() {
-    if (currentStep > 0) {
-      currentStep--;
+    if (currentStep.value > 0) {
+      currentStep.value--;
     }
   }
 
   Future<void> pickImage() async {
-    final pickedFile = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 100);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 100,
+    );
     if (pickedFile != null) {
       imagePath.value = pickedFile.path;
     }
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    resetFlow();
   }
 }

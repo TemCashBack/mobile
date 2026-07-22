@@ -1,7 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
   var isLoading = false.obs;
   var isPasswordVisible = false.obs;
 
@@ -11,7 +15,6 @@ class LoginController extends GetxController {
     isLoading.value = true;
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
-      Get.offAllNamed('/home');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         Get.snackbar('Erro', 'Usuário não encontrado.');
@@ -25,8 +28,14 @@ class LoginController extends GetxController {
     }
   }
 
-  // Alternar visibilidade
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.onClose();
   }
 }

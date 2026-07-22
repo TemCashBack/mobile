@@ -26,7 +26,7 @@ class MapaPage extends StatefulWidget {
 class _MapaPageState extends State<MapaPage> {
   final companiesRepository = CompanyRepository();
   final Completer<GoogleMapController> _googleMapController = Completer();
-  final LocationController locationController = Get.put(LocationController());
+  final LocationController locationController = Get.find<LocationController>();
 
   @override
   void initState() {
@@ -38,16 +38,11 @@ class _MapaPageState extends State<MapaPage> {
   }
 
   Future<void> _requestLocationIfNeeded() async {
-    if (locationController.currentPosition.value == null) {
-      // Verificar se tem permissão
-      bool hasPermission = await locationController.checkLocationPermission();
-      if (!hasPermission) {
-        // Solicitar permissão
-        await locationController.requestLocationPermission();
-      } else {
-        // Solicitar localização
-        await locationController.requestLocation();
-      }
+    if (locationController.currentPosition.value != null) return;
+
+    final granted = await locationController.ensureLocationAccess();
+    if (granted) {
+      await locationController.requestLocation();
     }
   }
 

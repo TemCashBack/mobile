@@ -1,8 +1,10 @@
-import 'dart:io';
+import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mobile/core/location/location_settings_helper.dart';
 
 class LocationController extends GetxController {
   Rx<LatLng?> initialPosition = Rx<LatLng?>(null);
@@ -12,188 +14,177 @@ class LocationController extends GetxController {
   RxBool isLoadingLocation = false.obs;
   RxBool hasLocationPermission = false.obs;
   RxBool isLocationServiceEnabled = false.obs;
+  RxString locationError = ''.obs;
+
+  StreamSubscription<Position>? _positionSubscription;
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    // Inicializar de forma mais segura
     await _initializeLocationServices();
   }
 
-  // Inicializar serviços de localização de forma segura
   Future<void> _initializeLocationServices() async {
     try {
-      // Verificar se o serviço de localização está habilitado
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      isLocationServiceEnabled.value = serviceEnabled;
-
-      if (!serviceEnabled) {
-        print("Serviço de localização está desativado.");
-        return;
-      }
-
-      // Verificar permissões existentes
+      await _refreshLocationServiceStatus();
       await checkLocationPermission();
-    } catch (e) {
-      print("Erro ao inicializar serviços de localização: $e");
+
+      if (hasLocationPermission.value) {
+        await requestLocation();
+      }
+    } catch (_) {
+      locationError.value = 'Não foi possível inicializar a localização.';
     }
   }
 
-  // Método para obter a localização atual
-  Future<void> _getCurrentLocation() async {
-    if (isLoadingLocation.value) return; // Evita múltiplas chamadas simultâneas
+  Future<void> _refreshLocationServiceStatus() async {
+    if (kIsWeb) {
+      isLocationServiceEnabled.value = true;
+      return;
+    }
+
+    isLocationServiceEnabled.value =
+        await Geolocator.isLocationServiceEnabled();
+  }
+
+  Future<bool> ensureLocationAccess() async {
+    try {
+      await _refreshLocationServiceStatus();
+
+      if (!kIsWeb && !isLocationServiceEnabled.value) {
+        locationError.value = 'Ative o GPS/localização do dispositivo.';
+        hasLocationPermission.value = false;
+        return false;
+      }
+
+      var permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        hasLocationPermission.value = false;
+        locationError.value =
+            'Permissão negada. Habilite a localização nas configurações.';
+        return false;
+      }
+
+      if (permission == LocationPermission.denied) {
+        hasLocationPermission.value = false;
+        locationError.value = kIsWeb
+            ? 'Permita o acesso à localização no navegador.'
+            : 'Permissão de localização necessária.';
+        return false;
+      }
+
+      hasLocationPermission.value = true;
+      locationError.value = '';
+      return true;
+    } catch (_) {
+      hasLocationPermission.value = false;
+      locationError.value = 'Erro ao solicitar permissão de localização.';
+      return false;
+    }
+  }
+
+  Future<bool> requestLocation() async {
+    if (isLoadingLocation.value) {
+      return currentPosition.value != null;
+    }
+
+    final hasAccess = await ensureLocationAccess();
+    if (!hasAccess) return false;
 
     isLoadingLocation.value = true;
 
     try {
-      // Verificar se o serviço de localização está habilitado
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      isLocationServiceEnabled.value = serviceEnabled;
-
-      if (!serviceEnabled) {
-        print("Serviço de localização está desativado.");
-        isLoadingLocation.value = false;
-        return;
-      }
-
-      // Verificar permissões de localização
-      LocationPermission permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.deniedForever) {
-        print("Permissão de localização permanentemente negada.");
-        hasLocationPermission.value = false;
-        isLoadingLocation.value = false;
-        return;
-      } else if (permission == LocationPermission.denied) {
-        // Solicitar permissão de forma mais segura
-        try {
-          permission = await Geolocator.requestPermission();
-          if (permission != LocationPermission.whileInUse &&
-              permission != LocationPermission.always) {
-            print("Permissão de localização negada.");
-            hasLocationPermission.value = false;
-            isLoadingLocation.value = false;
-            return;
-          }
-        } catch (e) {
-          print("Erro ao solicitar permissão de localização: $e");
-          hasLocationPermission.value = false;
-          isLoadingLocation.value = false;
-          return;
-        }
-      }
-
-      hasLocationPermission.value = true;
-
-      // Configurar stream de posição de forma mais segura
-      try {
-        Geolocator.getPositionStream(
-          locationSettings: LocationSettings(
-            accuracy: Platform.isAndroid
-                ? LocationAccuracy.best
-                : LocationAccuracy.bestForNavigation,
-            distanceFilter: 10, // Atualizar apenas quando mover 10 metros
-          ),
-        ).listen(
-          (Position position) {
-            currentPosition.value = position;
-            if (initialPosition.value == null) {
-              initialPosition.value =
-                  LatLng(position.latitude, position.longitude);
-            }
-          },
-          onError: (error) {
-            print("Erro no stream de localização: $error");
-          },
-        );
-      } catch (e) {
-        print("Erro ao configurar stream de localização: $e");
-      }
-
-      // Obter posição atual de forma mais segura
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-          locationSettings: LocationSettings(
-            accuracy: Platform.isAndroid
-                ? LocationAccuracy.best
-                : LocationAccuracy.bestForNavigation,
-            timeLimit: const Duration(seconds: 15), // Timeout de 15 segundos
-          ),
-        );
-
-        currentPosition.value = position;
-        if (initialPosition.value == null) {
-          initialPosition.value = LatLng(position.latitude, position.longitude);
-        }
-
-        print(
-            "Posição atual obtida: ${position.latitude}, ${position.longitude}");
-      } catch (e) {
-        print("Erro ao obter posição atual: $e");
-        // Em caso de erro, tentar usar a última posição conhecida
-        try {
-          Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-          if (lastKnownPosition != null) {
-            currentPosition.value = lastKnownPosition;
-            if (initialPosition.value == null) {
-              initialPosition.value = LatLng(
-                  lastKnownPosition.latitude, lastKnownPosition.longitude);
-            }
-            print(
-                "Usando última posição conhecida: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}");
-          }
-        } catch (lastError) {
-          print("Erro ao obter última posição conhecida: $lastError");
-        }
-      }
-    } catch (e) {
-      print("Erro geral ao obter localização: $e");
+      await _startPositionStream();
+      await _fetchCurrentPosition();
+      return currentPosition.value != null;
+    } catch (_) {
+      locationError.value = 'Não foi possível obter sua localização.';
+      return false;
     } finally {
       isLoadingLocation.value = false;
     }
   }
 
-  // Método público para solicitar localização
-  Future<void> requestLocation() async {
-    await _getCurrentLocation();
+  Future<void> _startPositionStream() async {
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: LocationSettingsHelper.settings(forStream: true),
+    ).listen(
+      (position) => _applyPosition(position),
+      onError: (_) {},
+    );
   }
 
-  // Verificar se tem permissão de localização
+  Future<void> _fetchCurrentPosition() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: LocationSettingsHelper.settings(),
+      );
+      _applyPosition(position);
+      locationError.value = '';
+    } catch (_) {
+      await _tryLastKnownPosition();
+    }
+  }
+
+  Future<void> _tryLastKnownPosition() async {
+    try {
+      final lastKnownPosition = await Geolocator.getLastKnownPosition();
+      if (lastKnownPosition != null) {
+        _applyPosition(lastKnownPosition);
+        locationError.value = '';
+      }
+    } catch (_) {
+      if (currentPosition.value == null) {
+        locationError.value = 'Localização indisponível no momento.';
+      }
+    }
+  }
+
+  void _applyPosition(Position position) {
+    currentPosition.value = position;
+    initialPosition.value ??= LatLng(position.latitude, position.longitude);
+  }
+
   Future<bool> checkLocationPermission() async {
     try {
-      LocationPermission permission = await Geolocator.checkPermission();
+      final permission = await Geolocator.checkPermission();
       hasLocationPermission.value =
           permission == LocationPermission.whileInUse ||
               permission == LocationPermission.always;
       return hasLocationPermission.value;
-    } catch (e) {
-      print("Erro ao verificar permissão: $e");
+    } catch (_) {
+      hasLocationPermission.value = false;
       return false;
     }
   }
 
-  // Solicitar permissão de localização
   Future<bool> requestLocationPermission() async {
-    try {
-      LocationPermission permission = await Geolocator.requestPermission();
-      hasLocationPermission.value =
-          permission == LocationPermission.whileInUse ||
-              permission == LocationPermission.always;
-      return hasLocationPermission.value;
-    } catch (e) {
-      print("Erro ao solicitar permissão: $e");
-      return false;
-    }
+    return ensureLocationAccess();
   }
 
-  // Atualizar a posição da câmera quando o usuário mover o mapa
+  Future<bool> openLocationSettings() async {
+    return Geolocator.openLocationSettings();
+  }
+
+  Future<bool> openAppSettings() async {
+    return Geolocator.openAppSettings();
+  }
+
   void onCameraMove(CameraPosition position) {
-    try {
-      print(
-          "Posição da câmera: ${position.target.latitude}, ${position.target.longitude}");
-      cameraPosition.value = position;
-    } catch (e) {
-      print("Erro ao atualizar posição da câmera: $e");
-    }
+    cameraPosition.value = position;
+  }
+
+  @override
+  void onClose() {
+    _positionSubscription?.cancel();
+    super.onClose();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 
 class FirebaseMessagingController extends GetxController {
@@ -11,36 +12,47 @@ class FirebaseMessagingController extends GetxController {
   }
 
   Future<String?> getToken() async {
-    String? token = await messaging.getToken();
-    return token;
-  }
-
-  void _initNotifications() async {
-    await messaging.subscribeToTopic("todos");
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print("Permissão concedida para notificações!");
+    if (kIsWeb) {
+      try {
+        return await messaging.getToken();
+      } catch (_) {
+        return null;
+      }
     }
+    return messaging.getToken();
+  }
 
-    String? token = await messaging.getToken();
-    print("FCM Token: $token");
+  Future<void> _initNotifications() async {
+    try {
+      if (!kIsWeb) {
+        await messaging.subscribeToTopic('todos');
+        FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+      }
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Nova notificação!");
-      print("Título: ${message.notification?.title}");
-      print("Mensagem: ${message.notification?.body}");
-    });
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+      if (settings.authorizationStatus == AuthorizationStatus.authorized &&
+          !kIsWeb) {
+        // Log removido — evita avoid_print no web durante dev
+      }
+
+      await getToken();
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        final title = message.notification?.title;
+        final body = message.notification?.body;
+        if (title != null || body != null) {
+          Get.snackbar(title ?? 'Notificação', body ?? '');
+        }
+      });
+    } catch (_) {
+      // FCM web pode falhar em localhost sem VAPID ou permissão negada.
+    }
   }
 }
 
-// Handler para background notifications
-Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
-  print("Notificação recebida em background: ${message.notification?.title}");
-}
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {}

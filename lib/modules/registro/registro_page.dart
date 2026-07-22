@@ -3,9 +3,8 @@ import 'package:get/get.dart';
 import 'package:mobile/modules/registro/registro_controller.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
-class RegistroPage extends StatelessWidget {
+class RegistroPage extends GetView<RegistroController> {
   RegistroPage({super.key});
-  final RegistroController controller = Get.put(RegistroController());
 
   @override
   Widget build(BuildContext context) {
