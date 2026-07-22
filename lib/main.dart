@@ -10,7 +10,7 @@ import 'package:mobile/controllers/firebase_message_controller.dart';
 import 'package:mobile/initial_binding.dart';
 import 'package:mobile/modules/splash_screen/splash_screen_page.dart';
 import 'package:mobile/routes/app_pages.dart';
-import 'package:mobile/ui/theme/colors.dart';
+import 'package:mobile/ui/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,15 +67,7 @@ class MainWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Tem Cashback',
-      theme: ThemeData(
-          primarySwatch: primaryThemeColor,
-          secondaryHeaderColor: secondaryThemeColor,
-          textTheme: TextTheme(
-            bodySmall: TextStyle(fontSize: 12),
-            bodyMedium: TextStyle(fontSize: 12),
-            bodyLarge: TextStyle(fontSize: 12),
-          ),
-          iconTheme: IconThemeData(color: iconColorTheme)),
+      theme: AppTheme.light,
       getPages: AppPages.pages,
       home: SplashScreenPage(),
       initialBinding: InitialBinding(),

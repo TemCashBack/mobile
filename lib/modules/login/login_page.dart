@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/modules/login/login_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
@@ -11,97 +12,85 @@ class LoginPage extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(40),
-          color: Colors.black,
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'lib/ui/assets/logo.png',
-                width: MediaQuery.of(context).size.width * 0.6,
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                cursorColor: Colors.grey,
-                controller: controller.emailController,
-                decoration: InputDecoration(
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: primaryThemeColor, width: 1),
+      backgroundColor: AppColors.header,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Image.asset(
+                    'lib/ui/assets/logo.png',
+                    height: 72,
                   ),
-                  labelStyle: TextStyle(color: secondaryThemeColor),
-                  labelText: 'E-mail',
-                  prefixIcon: Icon(
-                    Icons.email,
-                    color: primaryThemeColor,
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    'Entrar na sua conta',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: secondaryThemeColor.shade200,
+                      fontSize: 15,
+                    ),
                   ),
-                  border: const OutlineInputBorder(),
-                ),
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 20),
-              Obx(
-                () => TextField(
-                  cursorColor: Colors.grey,
-                  obscureText: !controller.isPasswordVisible.value,
-                  controller: controller.passwordController,
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: primaryThemeColor, width: 1),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextField(
+                    controller: controller.emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail',
+                      prefixIcon: Icon(Icons.email_outlined),
                     ),
-                    labelStyle: TextStyle(color: secondaryThemeColor),
-                    labelText: 'Senha',
-                    prefixIcon: Icon(
-                      Icons.password,
-                      color: primaryThemeColor,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        controller.isPasswordVisible.value
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: primaryThemeColor,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Obx(
+                    () => TextField(
+                      obscureText: !controller.isPasswordVisible.value,
+                      controller: controller.passwordController,
+                      style: const TextStyle(color: AppColors.textPrimary),
+                      decoration: InputDecoration(
+                        labelText: 'Senha',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            controller.isPasswordVisible.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: controller.togglePasswordVisibility,
+                        ),
                       ),
-                      onPressed: controller.togglePasswordVisibility,
                     ),
-                    border: const OutlineInputBorder(),
                   ),
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 43, 43, 43)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Obx(() {
-                if (controller.isLoading.value) {
-                  return const ProgressIndicatorCustom();
-                }
-
-                return ElevatedButton(
-                  onPressed: () {
-                    controller.loginWithEmail(
-                      controller.emailController.text.trim(),
-                      controller.passwordController.text.trim(),
+                  const SizedBox(height: AppSpacing.lg),
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(child: ProgressIndicatorCustom());
+                    }
+                    return ElevatedButton(
+                      onPressed: () {
+                        controller.loginWithEmail(
+                          controller.emailController.text.trim(),
+                          controller.passwordController.text.trim(),
+                        );
+                      },
+                      child: const Text('ENTRAR'),
                     );
-                  },
-                  child: Text(
-                    'ENTRAR',
-                    style: TextStyle(color: primaryThemeColor, fontSize: 16),
+                  }),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton(
+                    onPressed: () => Get.toNamed(AppRoutes.REGISTRO),
+                    child: Text(
+                      'Criar uma conta',
+                      style: TextStyle(color: secondaryThemeColor.shade300),
+                    ),
                   ),
-                );
-              }),
-              TextButton(
-                onPressed: () => Get.toNamed(AppRoutes.REGISTRO),
-                child: Text(
-                  'Criar uma conta',
-                  style: TextStyle(color: secondaryThemeColor),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

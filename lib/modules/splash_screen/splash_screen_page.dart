@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class SplashScreenPage extends StatelessWidget {
@@ -12,7 +14,7 @@ class SplashScreenPage extends StatelessWidget {
 
     return Obx(() {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.header,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -21,14 +23,17 @@ class SplashScreenPage extends StatelessWidget {
                 'lib/ui/assets/logo.png',
                 height: 100,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               const ProgressIndicatorCustom(),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 authController.isAuthReady.value
                     ? 'Redirecionando...'
                     : 'Carregando...',
-                style: const TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
               ),
             ],
           ),

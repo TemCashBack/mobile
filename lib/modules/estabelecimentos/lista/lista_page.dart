@@ -9,6 +9,9 @@ import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/category_repository.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
 import 'package:mobile/modules/estabelecimentos/lista/lista_controller.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/theme/colors.dart';
+import 'package:mobile/ui/widgets/app_section_title.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
@@ -25,197 +28,189 @@ class ListaPage extends GetView<ListaController> {
     return Column(
       children: [
         Container(
-          decoration: BoxDecoration(color: Colors.black),
-          padding: EdgeInsets.all(5),
-          child: TextField(
-            cursorColor: Colors.grey,
-            controller: searchController,
-            onChanged: (text) {
-              controller.term.value = text;
-              controller.category.value = '';
-            },
-            decoration: InputDecoration(
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black, width: 1),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(),
-              hintText: 'Pesquise um estabelecimento',
-            ),
-            style: TextStyle(fontSize: 12),
-          ),
-        ),
-        Container(
-          decoration: const BoxDecoration(color: Colors.black),
-          padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
-          child: StreamBuilder<QuerySnapshot>(
-            stream: categoriesRepository.getAllCategories(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Center(child: ProgressIndicatorCustom()),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              final categoryItems = snapshot.data!.docs.map((doc) {
-                final json = jsonEncode(doc.data());
-                final docMap = jsonDecode(json) as Map<String, dynamic>;
-                return CategoryModel.fromJson(docMap);
-              }).toList();
-
-              return Obx(
-                () => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.grey.shade400),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: controller.category.value.isEmpty
-                          ? null
-                          : controller.category.value,
-                      isExpanded: true,
-                      hint: const Text(
-                        'Filtrar por categoria',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
-                      ),
-                      dropdownColor: Colors.white,
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: '',
-                          child: Text(
-                            'Todas as categorias',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                        ...categoryItems.map(
-                          (category) => DropdownMenuItem<String>(
-                            value: category.description,
-                            child: Text(
-                              category.description,
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        controller.category.value = value ?? '';
-                        if (value != null && value.isNotEmpty) {
-                          controller.term.value = '';
-                          searchController.clear();
-                        }
-                      },
-                    ),
-                  ),
+          color: AppColors.header,
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Column(
+            children: [
+              TextField(
+                controller: searchController,
+                onChanged: (text) {
+                  controller.term.value = text;
+                  controller.category.value = '';
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Pesquise um estabelecimento',
+                  prefixIcon: Icon(Icons.search_rounded),
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              StreamBuilder<QuerySnapshot>(
+                stream: categoriesRepository.getAllCategories(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Center(child: ProgressIndicatorCustom()),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final categoryItems = snapshot.data!.docs.map((doc) {
+                    final json = jsonEncode(doc.data());
+                    final docMap = jsonDecode(json) as Map<String, dynamic>;
+                    return CategoryModel.fromJson(docMap);
+                  }).toList();
+
+                  return Obx(
+                    () => InputDecorator(
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: controller.category.value.isEmpty
+                              ? null
+                              : controller.category.value,
+                          isExpanded: true,
+                          hint: const Text('Filtrar por categoria'),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: '',
+                              child: Text('Todas as categorias'),
+                            ),
+                            ...categoryItems.map(
+                              (category) => DropdownMenuItem<String>(
+                                value: category.description,
+                                child: Text(
+                                  category.description,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            controller.category.value = value ?? '';
+                            if (value != null && value.isNotEmpty) {
+                              controller.term.value = '';
+                              searchController.clear();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: companiesRepository.getAllCompanies(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: ProgressIndicatorCustom(),
-                    ),
-                  );
-                } else {
-                  if (snapshot.hasData) {
-                    return Obx(() {
-                      empresas = snapshot.data!.docs;
-                      //Search
-                      if (controller.term.value.isNotEmpty) {
-                        empresas = empresas.where((element) {
-                          return element
-                              .get('nomeFantasia')
-                              .toString()
-                              .toLowerCase()
-                              .contains(controller.term.value.toLowerCase());
-                        }).toList();
-                      }
-                      if (controller.category.value.isNotEmpty) {
-                        empresas = empresas.where((element) {
-                          return element
-                              .get('categoria')
-                              .toString()
-                              .toLowerCase()
-                              .contains(
-                                  controller.category.value.toLowerCase());
-                        }).toList();
-                      }
+          child: StreamBuilder<QuerySnapshot>(
+            stream: companiesRepository.getAllCompanies(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: ProgressIndicatorCustom());
+              }
 
-                      if (empresas.isNotEmpty) {
-                        return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int index) {
-                              DocumentSnapshot item = empresas[index];
-                              String json = jsonEncode(item.data());
-                              Map<String, dynamic> docMap = jsonDecode(json);
-                              var entityCompany = CompanyModel.fromJson(docMap);
-                              return Card(
-                                child: ListTile(
-                                  contentPadding:
-                                      EdgeInsets.fromLTRB(20, 0, 20, 0),
-                                  leading: (entityCompany.foto != "")
-                                      ? Image.network(
-                                          entityCompany.foto,
-                                          height: 40,
-                                        )
-                                      : Image.asset(
-                                          'lib/ui/assets/logo-round.png',
-                                          height: 40,
-                                        ),
-                                  title: Text(
-                                    entityCompany.nomeFantasia,
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                  subtitle: !entityCompany.isOnline
-                                      ? Text(
-                                          '${entityCompany.endereco}, ${entityCompany.numero}  ${entityCompany.bairro} - ${entityCompany.municipio}/${entityCompany.uf}',
-                                          style: TextStyle(fontSize: 10),
-                                        )
-                                      : Text('Serviço on-line'),
-                                  onTap: () {
-                                    CompanyBottomSheet(context: context)
-                                        .showCompany(
-                                            entityCompany.id,
-                                            entityCompany,
-                                            locationController
-                                                .currentPosition.value);
-                                  },
-                                ),
-                              );
-                            },
-                            itemCount: empresas.length);
-                      } else {
-                        return Text('Nada encontrado!');
-                      }
-                    });
-                  } else {
-                    return Text('Nada encontrado!');
-                  }
+              if (!snapshot.hasData) {
+                return const AppEmptyState(message: 'Nenhum estabelecimento encontrado.');
+              }
+
+              return Obx(() {
+                empresas = snapshot.data!.docs;
+                if (controller.term.value.isNotEmpty) {
+                  empresas = empresas.where((element) {
+                    return element
+                        .get('nomeFantasia')
+                        .toString()
+                        .toLowerCase()
+                        .contains(controller.term.value.toLowerCase());
+                  }).toList();
                 }
-              },
-            ),
+                if (controller.category.value.isNotEmpty) {
+                  empresas = empresas.where((element) {
+                    return element
+                        .get('categoria')
+                        .toString()
+                        .toLowerCase()
+                        .contains(controller.category.value.toLowerCase());
+                  }).toList();
+                }
+
+                if (empresas.isEmpty) {
+                  return const AppEmptyState(
+                    message: 'Nenhum resultado para os filtros selecionados.',
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  itemCount: empresas.length,
+                  itemBuilder: (context, index) {
+                    final item = empresas[index];
+                    final json = jsonEncode(item.data());
+                    final docMap = jsonDecode(json) as Map<String, dynamic>;
+                    final entityCompany = CompanyModel.fromJson(docMap);
+
+                    return Card(
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(14),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          child: entityCompany.foto.isNotEmpty
+                              ? Image.network(
+                                  entityCompany.foto,
+                                  height: 48,
+                                  width: 48,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.asset(
+                                  'lib/ui/assets/logo-round.png',
+                                  height: 48,
+                                  width: 48,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        title: Text(
+                          entityCompany.nomeFantasia,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            entityCompany.isOnline
+                                ? 'Serviço on-line'
+                                : '${entityCompany.endereco}, ${entityCompany.numero} • ${entityCompany.municipio}/${entityCompany.uf}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.chevron_right_rounded,
+                          color: primaryThemeColor.shade600,
+                        ),
+                        onTap: () {
+                          CompanyBottomSheet(context: context).showCompany(
+                            entityCompany.id,
+                            entityCompany,
+                            locationController.currentPosition.value,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              });
+            },
           ),
         ),
       ],
