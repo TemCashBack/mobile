@@ -9,7 +9,6 @@ import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/category_repository.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
 import 'package:mobile/modules/estabelecimentos/lista/lista_controller.dart';
-import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
@@ -21,7 +20,6 @@ class ListaPage extends GetView<ListaController> {
     final locationController = Get.find<LocationController>();
     TextEditingController searchController = TextEditingController();
     List<DocumentSnapshot> empresas = [];
-    List<DocumentSnapshot> categories = [];
     final categoriesRepository = CategoryRepository();
     final companiesRepository = CompanyRepository();
     return Column(
@@ -48,57 +46,86 @@ class ListaPage extends GetView<ListaController> {
             style: TextStyle(fontSize: 12),
           ),
         ),
-        Expanded(
-          flex: 1,
-          child: StreamBuilder(
+        Container(
+          decoration: const BoxDecoration(color: Colors.black),
+          padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+          child: StreamBuilder<QuerySnapshot>(
             stream: categoriesRepository.getAllCategories(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: ProgressIndicatorCustom()),
-                );
-              } else {
-                categories = snapshot.data!.docs;
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (BuildContext context, int index) {
-                    DocumentSnapshot item = categories[index];
-                    String json = jsonEncode(item.data());
-                    Map<String, dynamic> docMap = jsonDecode(json);
-                    var entityCategory = CategoryModel.fromJson(docMap);
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          textStyle: TextStyle(fontSize: 12),
-                          foregroundColor: Colors.white,
-                          backgroundColor:
-                              primaryThemeColor, // Cor do texto (branco)
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero, // Borda reta
-                          ),
-                          padding:
-                              EdgeInsets.symmetric(vertical: 2, horizontal: 15),
-                        ),
-                        onPressed: () {
-                          controller.category.value =
-                              entityCategory.description;
-                          controller.term.value = '';
-                        },
-                        child: Text(entityCategory.description),
-                      ),
-                    );
-                  },
-                  itemCount: categories.length,
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(child: ProgressIndicatorCustom()),
                 );
               }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              final categoryItems = snapshot.data!.docs.map((doc) {
+                final json = jsonEncode(doc.data());
+                final docMap = jsonDecode(json) as Map<String, dynamic>;
+                return CategoryModel.fromJson(docMap);
+              }).toList();
+
+              return Obx(
+                () => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: controller.category.value.isEmpty
+                          ? null
+                          : controller.category.value,
+                      isExpanded: true,
+                      hint: const Text(
+                        'Filtrar por categoria',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                      ),
+                      dropdownColor: Colors.white,
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: '',
+                          child: Text(
+                            'Todas as categorias',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        ...categoryItems.map(
+                          (category) => DropdownMenuItem<String>(
+                            value: category.description,
+                            child: Text(
+                              category.description,
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        controller.category.value = value ?? '';
+                        if (value != null && value.isNotEmpty) {
+                          controller.term.value = '';
+                          searchController.clear();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              );
             },
           ),
         ),
         Expanded(
-          flex: 11,
           child: SingleChildScrollView(
             child: StreamBuilder<QuerySnapshot>(
               stream: companiesRepository.getAllCompanies(),
