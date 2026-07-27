@@ -7,12 +7,18 @@ import 'package:http/http.dart' as http;
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class RegistroController extends GetxController {
-  var currentStep = 0.obs;
+  RegistroController({required this.customerRepository});
 
-  // Controladores de texto
+  final CustomerRepository customerRepository;
+
+  var currentStep = 0.obs;
+  var isCheckingEmail = false.obs;
+
   final emailController = TextEditingController();
   final nomeController = TextEditingController();
   final cepController = TextEditingController();
@@ -25,7 +31,6 @@ class RegistroController extends GetxController {
   final confirmPasswordController = TextEditingController();
   final codigoConviteController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final CustomerRepository customerRepository = CustomerRepository();
 
   // Validações
 
@@ -93,7 +98,7 @@ class RegistroController extends GetxController {
     if (validateCep(cep) != null) {
       Get.snackbar('Erro', 'CEP inválido.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           colorText: Colors.white);
       return;
     }
@@ -122,7 +127,7 @@ class RegistroController extends GetxController {
     } catch (e) {
       Get.snackbar('Erro', 'Não foi possível buscar o endereço.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           colorText: Colors.white);
     }
   }
@@ -135,32 +140,177 @@ class RegistroController extends GetxController {
       case 1:
         return validateName(nomeController.text);
       case 2:
-        return validateCep(cepController.text);
+        if (validateCep(cepController.text) != null) {
+          return validateCep(cepController.text);
+        }
+        if (ruaController.text.trim().isEmpty) {
+          return 'Informe a rua.';
+        }
+        if (numeroController.text.trim().isEmpty) {
+          return 'Informe o número.';
+        }
+        return null;
       case 3:
+        final passwordError =
+            validatePassword(passwordController.text);
+        if (passwordError != null) return passwordError;
         return validateConfirmPassword(confirmPasswordController.text);
       default:
         return null;
     }
   }
 
-  // Próxima etapa com validação
-  void nextStep() {
-    String? response = validateCurrentStep();
-    if (response == null) {
-      if (currentStep.value < 3) {
-        currentStep.value++;
-      } else {
-        completeRegistration();
-      }
-    } else {
-      Get.snackbar(
-        'Erro',
-        response,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+  Future<bool> isEmailAlreadyRegistered(String email) async {
+    final normalized = email.trim().toLowerCase();
+
+    if (await customerRepository.existsByEmail(normalized)) {
+      return true;
     }
+
+    return _existsInFirebaseAuth(normalized);
+  }
+
+  /// Verifica no Auth tentando criar a conta. Se o e-mail já existir,
+  /// o Firebase retorna [email-already-in-use]. Se criar, remove o usuário
+  /// temporário imediatamente.
+  Future<bool> _existsInFirebaseAuth(String email) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: _temporaryPassword(),
+      );
+
+      try {
+        await credential.user?.delete();
+      } finally {
+        if (_auth.currentUser != null) {
+          await _auth.signOut();
+        }
+      }
+      return false;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        return true;
+      }
+      rethrow;
+    }
+  }
+
+  String _temporaryPassword() {
+    return 'Tmp!${DateTime.now().microsecondsSinceEpoch}Aa1';
+  }
+
+  // Próxima etapa com validação
+  Future<void> nextStep() async {
+    final response = validateCurrentStep();
+    if (response != null) {
+      _showErrorDialog(title: 'Atenção', message: response);
+      return;
+    }
+
+    if (currentStep.value == 0) {
+      isCheckingEmail.value = true;
+      try {
+        final email = emailController.text.trim().toLowerCase();
+        emailController.text = email;
+
+        final alreadyRegistered = await isEmailAlreadyRegistered(email);
+        if (alreadyRegistered) {
+          _showErrorDialog(
+            title: 'E-mail já cadastrado',
+            message:
+                'Já existe uma conta com este e-mail. Faça login ou use outro e-mail.',
+          );
+          return;
+        }
+      } catch (_) {
+        _showErrorDialog(
+          title: 'Erro',
+          message: 'Não foi possível verificar o e-mail. Tente novamente.',
+        );
+        return;
+      } finally {
+        isCheckingEmail.value = false;
+      }
+    }
+
+    if (currentStep.value < 3) {
+      currentStep.value++;
+    } else {
+      await completeRegistration();
+    }
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+  }) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.error,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryThemeColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Get.back(),
+                  child: const Text('Entendi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+    );
   }
 
   // Voltar para a etapa anterior
@@ -191,12 +341,12 @@ class RegistroController extends GetxController {
 
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: emailController.text,
+        email: emailController.text.trim().toLowerCase(),
         password: passwordController.text,
       );
 
       CustomerModel customerModel = CustomerModel(
-          email: emailController.text,
+          email: emailController.text.trim().toLowerCase(),
           nomeCompleto: nomeController.text,
           cep: cepController.text,
           rua: ruaController.text,
@@ -228,5 +378,21 @@ class RegistroController extends GetxController {
       Get.back();
       Get.defaultDialog(title: 'Erro', middleText: '$e');
     }
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    nomeController.dispose();
+    cepController.dispose();
+    ruaController.dispose();
+    cidadeController.dispose();
+    estadoController.dispose();
+    numeroController.dispose();
+    bairroController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    codigoConviteController.dispose();
+    super.onClose();
   }
 }

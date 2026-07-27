@@ -1,10 +1,13 @@
 import 'package:get/get.dart';
-import 'estabelecimentos_controller.dart';
+import 'package:mobile/modules/cashback/cashback_binding.dart';
+import 'package:mobile/modules/estabelecimentos/lista/lista_binding.dart';
+import 'package:mobile/modules/estabelecimentos/mapa/mapa_binding.dart';
 
 class EstabelecimentosBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<EstabelecimentosController>(
-        () => EstabelecimentosController()); // Injeta o HomeController
+    CashbackBinding.registerDependencies();
+    MapaBinding().dependencies();
+    ListaBinding().dependencies();
   }
 }

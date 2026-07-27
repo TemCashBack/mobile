@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
-import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class SplashScreenPage extends StatelessWidget {
@@ -11,35 +11,33 @@ class SplashScreenPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authController = Get.find<AuthController>();
 
-    // Realiza o redirecionamento com base no estado do usuário6
-    Future.delayed(Duration.zero, () {
-      if (authController.user.value != null) {
-        Get.offNamed(AppRoutes.HOME);
-      } else {
-        Get.offNamed(AppRoutes.BOASVINDAS);
-      }
-    });
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'lib/ui/assets/logo.png',
-              height: 100,
-            ),
-            SizedBox(height: 20),
-            ProgressIndicatorCustom(),
-            SizedBox(height: 20),
-            Text(
-              'Carregando...',
-              style: TextStyle(fontSize: 18),
-            ),
-          ],
+    return Obx(() {
+      return Scaffold(
+        backgroundColor: AppColors.header,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'lib/ui/assets/logo.png',
+                height: 100,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const ProgressIndicatorCustom(),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                authController.isAuthReady.value
+                    ? 'Redirecionando...'
+                    : 'Carregando...',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

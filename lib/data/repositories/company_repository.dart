@@ -1,13 +1,15 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile/core/constants/firestore_collections.dart';
 import 'package:mobile/data/models/company_model.dart';
 
 class CompanyRepository {
   late CollectionReference companies;
 
   CompanyRepository() {
-    companies = FirebaseFirestore.instance.collection('companies');
+    companies =
+        FirebaseFirestore.instance.collection(FirestoreCollections.companies);
   }
 
   Stream<QuerySnapshot> getAllCompanies() {

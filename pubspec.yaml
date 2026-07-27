@@ -46,28 +46,19 @@ dependencies:
   url_launcher: ^6.3.1
   google_maps_flutter: ^2.13.1
   custom_info_window: ^1.0.1
-  clippy_flutter: ^2.0.0-nullsafety.1
   flutter_typeahead: ^5.2.0
   google_maps_flutter_web: ^0.5.10
   google_sign_in: ^6.2.2
   map_launcher: ^3.5.0
   flutter_launcher_icons: ^0.14.4
-  flutter_local_notifications: ^18.0.1
-  firebase_app_installations: ^0.3.2+4
   firebase_messaging: ^15.2.4
   firebase_in_app_messaging: ^0.8.1+4
-  flutter_stepper: ^0.0.1
   http: ^1.2.2
-  # Pacote location removido - não estava sendo utilizado
   flutter_svg: ^2.0.17
   firebase_storage: ^12.4.4
-  image_cropper: ^8.1.0
   path: ^1.9.0
   image_picker: ^1.1.2
-  permission_handler: ^11.3.1
   camera: ^0.11.0+2
-  path_provider: ^2.1.5
-  firebase_remote_config: ^5.4.2
 
 dev_dependencies:
   flutter_test:

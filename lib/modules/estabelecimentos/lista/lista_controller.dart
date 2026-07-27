@@ -1,27 +1,59 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:mobile/controllers/location_controller.dart';
 
 class ListaController extends GetxController {
-  var term = ''.obs;
-  var category = ''.obs;
+  final term = ''.obs;
+  final category = ''.obs;
+  final searchController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
-    //listarPedidos(); // Buscar os produtos ao inicializar o controller
+    _ensureLocation();
   }
 
-  // Stream<QuerySnapshot<Object?>> listarPedidos() {
-  //   PedidosRepository pedidosRepository = PedidosRepository();
-  //   return pedidosRepository.streamGetAll();
-  // }
+  void onSearchChanged(String text) {
+    term.value = text;
+    if (text.isNotEmpty) {
+      category.value = '';
+    }
+  }
 
-  // Stream<DocumentSnapshot<Object?>> listarItensPedidos(id) {
-  //   PedidosRepository pedidosRepository = PedidosRepository();
-  //   return pedidosRepository.streamGetFromId(id);
-  // }
+  void selectCategory(String value) {
+    if (category.value == value) {
+      category.value = '';
+      return;
+    }
+    category.value = value;
+    if (value.isNotEmpty) {
+      term.value = '';
+      searchController.clear();
+    }
+  }
 
-  // Future<void> delete(idPedido) async {
-  //   PedidosRepository pedidosRepository = PedidosRepository();
-  //   return await pedidosRepository.delete(idPedido);
-  // }
+  void clearSearch() {
+    term.value = '';
+    searchController.clear();
+  }
+
+  void clearFilters() {
+    term.value = '';
+    category.value = '';
+    searchController.clear();
+  }
+
+  Future<void> _ensureLocation() async {
+    if (!Get.isRegistered<LocationController>()) return;
+    final location = Get.find<LocationController>();
+    if (await location.ensureLocationAccess()) {
+      await location.requestLocation();
+    }
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
+  }
 }

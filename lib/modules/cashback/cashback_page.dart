@@ -1,214 +1,520 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:get/get.dart';
 import 'package:mobile/modules/cashback/cashback_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
-// ignore: must_be_immutable
-class CashbackPage extends StatelessWidget {
-  final CashbackController controller = Get.put(CashbackController());
+class CashbackPage extends GetView<CashbackController> {
+  const CashbackPage({super.key});
 
-  CashbackPage({super.key}) {
-    _executarMetodo();
-  }
-
-  void _executarMetodo() {
-    Future.microtask(() {
-      controller.currentStep.value = 0;
-      controller.loadCashbackBalance();
-    });
-  }
+  static const _titles = [
+    'Valor da compra',
+    'Comprovante',
+    'Usar cashback',
+    'Confirmação',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final MoneyMaskedTextController moneyController = MoneyMaskedTextController(
-      decimalSeparator: ',',
-      thousandSeparator: '.',
-      precision: 2,
-    );
-
-    final MoneyMaskedTextController moneyController2 =
-        MoneyMaskedTextController(
-      decimalSeparator: ',',
-      thousandSeparator: '.',
-      precision: 2,
-    );
-
-    void validateInput(String value) {
-      double inputValue = moneyController.numberValue;
-      if (inputValue > 200) {
-        moneyController.updateValue(200);
-        controller.valorCompra.value = 200;
-      } else {
-        controller.valorCompra.value = inputValue;
-      }
-    }
-
-    void validateInputForUsedCashback(String value, String maxUsed) {
-      double inputValue = moneyController2.numberValue;
-      double used = double.parse(maxUsed);
-      if (inputValue > used) {
-        moneyController2.updateValue(used);
-        controller.utilizaValor.value = used;
-      } else {
-        controller.utilizaValor.value = inputValue;
-      }
-    }
-
     return Scaffold(
-      appBar: AppBar(title: Text('Finalizar compra')),
-      body: Obx(
-        () {
-          if (controller.isLoading.value) {
-            return Positioned.fill(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                color: Colors.black.withOpacity(0.4),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        color: primaryThemeColor,
-                      ),
-                      Text('Finalizando a sua compra....')
-                    ]),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('Finalizar compra')),
+      body: Obx(() {
+        final step = controller.currentStep.value;
+        return Stack(
+          children: [
+            Column(
+              children: [
+                _StepHeader(
+                  currentStep: step,
+                  titles: _titles,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: _buildStepContent(step),
+                  ),
+                ),
+                _StepActions(
+                  currentStep: step,
+                  lastStep: _titles.length - 1,
+                  onBack: controller.previousStep,
+                  onContinue: _onStepContinue,
+                ),
+              ],
+            ),
+            if (controller.isLoading.value) const _LoadingOverlay(),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildStepContent(int step) {
+    switch (step) {
+      case 0:
+        return _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Informe o valor da compra',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            );
-          } else {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: Theme.of(context).colorScheme.copyWith(
-                    primary: primaryThemeColor, // Cor do Step ativo
-                    secondary: secondaryThemeColor),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                'O valor máximo por compra é R\$ 200,00.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-              child: Stack(children: [
-                Stepper(
-                  currentStep: controller.currentStep.value,
-                  onStepContinue: () {
-                    if (controller.currentStep.value == 0) {
-                      if (controller.valorCompra.value <= 0) {
-                        Get.snackbar(
-                            'Erro', 'Insira um valor válido para continuar.');
-                        return;
-                      }
-                    } else if (controller.currentStep.value == 1) {
-                      if (controller.imagePath.value.isEmpty) {
-                        Get.snackbar('Erro', 'Tire uma foto do comprovante.');
-                        return;
-                      }
-                    }
-                    if (controller.currentStep.value == 3) {
-                      controller.isLoading.value = true;
-                      controller.saveCashBack().then((id) {
-                        Get.toNamed(AppRoutes.HOME);
-                      });
-                    } else {
-                      controller.nextStep();
-                    }
-                  },
-                  onStepCancel: controller.previousStep,
-                  controlsBuilder:
-                      (BuildContext context, ControlsDetails details) {
-                    return Row(
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: controller.valorCompraController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Valor (R\$)',
+                  prefixText: 'R\$ ',
+                ),
+                onChanged: controller.onValorCompraChanged,
+              ),
+            ],
+          ),
+        );
+      case 1:
+        return _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Envie a foto do comprovante',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Obx(() {
+                final bytes = controller.imageBytes.value;
+                if (bytes == null) {
+                  return Container(
+                    height: 180,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.divider),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: details.onStepContinue,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryThemeColor),
-                          child: Text(
-                              (controller.currentStep.value == 3)
-                                  ? 'Finalizar'
-                                  : 'Continuar',
-                              style: TextStyle(color: Colors.white)),
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 36,
+                          color: AppColors.textSecondary,
                         ),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: details.onStepCancel,
-                          child: Text(
-                            'Voltar',
-                            style: TextStyle(color: primaryThemeColor),
-                          ),
+                        SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Nenhuma imagem selecionada',
+                          style: TextStyle(color: AppColors.textSecondary),
                         ),
                       ],
-                    );
-                  },
-                  steps: [
-                    Step(
-                      title: Text('Digite o Valor da Compra'),
-                      content: Column(
-                        children: [
-                          TextField(
-                            controller: moneyController,
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                                labelText: 'Valor (até R\$200,00)'),
-                            onChanged: (value) {
-                              validateInput(value);
-                            },
-                          ),
-                        ],
-                      ),
-                      isActive: controller.currentStep.value >= 1,
                     ),
-                    Step(
-                      title: Text('Tirar Foto do Comprovante'),
-                      content: Column(
-                        children: [
-                          // ignore: unnecessary_null_comparison
-                          Obx(() => controller.imagePath.value != null
-                              ? Image.file(File(controller.imagePath.value))
-                              : Text('Nenhuma imagem selecionada')),
-                          SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: controller.pickImage,
-                            child: Text('Tirar Foto'),
-                          ),
-                        ],
-                      ),
-                      isActive: controller.currentStep.value >= 2,
+                  );
+                }
+
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  child: Image.memory(
+                    bytes,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              }),
+              const SizedBox(height: AppSpacing.md),
+              ElevatedButton.icon(
+                onPressed: controller.pickImage,
+                icon: Icon(
+                  kIsWeb
+                      ? Icons.photo_library_outlined
+                      : Icons.photo_camera_outlined,
+                ),
+                label: Text(kIsWeb ? 'Escolher foto' : 'Tirar foto'),
+              ),
+            ],
+          ),
+        );
+      case 2:
+        return _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Usar cashback nesta compra',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                'Na mesma loja você usa 100% do saldo ganho nela. Em outras lojas, no máximo 50% de cada crédito (vitalício). O uso não pode passar do valor da compra e, se houver uso, esta compra não gera novos ganhos.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Obx(() {
+                if (controller.isLoadingBalance.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                // Lê obs para o Obx reagir a saldo e valor da compra.
+                final maximo = controller.maximoUtilizavel;
+                controller.valorCompra.value;
+                controller.maximoSaldo.value;
+
+                return Column(
+                  children: [
+                    _BalanceInfoRow(
+                      label: 'Saldo nesta loja (100%)',
+                      value: controller.saldoMesmaLoja.value,
                     ),
-                    Step(
-                      title: Text(
-                          'Utilizar o cashback da loja?\nDisponível R\$${controller.usedCashback.value.toStringAsFixed(2).replaceAll('.', ',')}'),
-                      content: Column(
-                        children: [
-                          TextField(
-                            controller: moneyController2,
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(labelText: 'Valor'),
-                            onChanged: (value) {
-                              validateInputForUsedCashback(value,
-                                  controller.usedCashback.value.toString());
-                            },
-                          ),
-                          Text(
-                              'Ao utilizar o cashback, essa compra não gerará ganhos de cashback.')
-                        ],
-                      ),
-                      isActive: controller.currentStep.value >= 2,
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Saldo em outras lojas',
+                      value: controller.saldoParceiraBruta.value,
                     ),
-                    Step(
-                      title: Text('Confirmação'),
-                      content: Column(
-                        children: [
-                          Text(
-                              'Sua compra será analisada pelo lojista. Assim que for confirmada, você receberá uma notificação no app informando a aprovação.'),
-                        ],
-                      ),
-                      isActive: controller.currentStep.value >= 4,
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Utilizável de outras lojas (50% vitalício)',
+                      value: controller.saldoParceiraUtilizavel.value,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Máximo nesta compra',
+                      value: maximo,
+                      emphasize: true,
                     ),
                   ],
+                );
+              }),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: controller.utilizaValorController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-              ]),
+                decoration: const InputDecoration(
+                  labelText: 'Valor a utilizar (opcional)',
+                  prefixText: 'R\$ ',
+                ),
+                onChanged: controller.onUtilizaValorChanged,
+              ),
+              Obx(() {
+                if (controller.utilizaValor.value <= 0) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Text(
+                    'Esta compra não gerará cashback.',
+                    style: TextStyle(
+                      color: AppColors.error.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      case 3:
+        return _Card(
+          child: Obx(() {
+            final using = controller.utilizaValor.value > 0;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Confirmar envio',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  using
+                      ? 'Você está utilizando R\$ ${controller.utilizaValor.value.toStringAsFixed(2).replaceAll('.', ',')} de cashback nesta loja (reserva pendente de aprovação). Esta compra não gerará novos cashbacks.'
+                      : 'Sua compra será analisada pelo lojista. Após a aprovação, você receberá 5% de cashback e uma notificação no app.',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    height: 1.45,
+                  ),
+                ),
+              ],
             );
-          }
-        },
+          }),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void _onStepContinue() {
+    if (controller.currentStep.value == 0) {
+      controller.onValorCompraChanged('');
+      if (controller.valorCompra.value <= 0) {
+        Get.snackbar('Erro', 'Insira um valor válido para continuar.');
+        return;
+      }
+    } else if (controller.currentStep.value == 1) {
+      if (controller.imageBytes.value == null) {
+        Get.snackbar('Erro', 'Selecione uma foto do comprovante.');
+        return;
+      }
+    }
+
+    if (controller.currentStep.value == 3) {
+      controller.isLoading.value = true;
+      controller.saveCashBack().then((_) {
+        Get.offAllNamed(AppRoutes.HOME);
+      }).catchError((Object error) {
+        controller.isLoading.value = false;
+        Get.snackbar('Erro', 'Não foi possível finalizar a compra.');
+      });
+    } else {
+      controller.nextStep();
+    }
+  }
+}
+
+class _StepHeader extends StatelessWidget {
+  const _StepHeader({
+    required this.currentStep,
+    required this.titles,
+  });
+
+  final int currentStep;
+  final List<String> titles;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Etapa ${currentStep + 1} de ${titles.length}',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            titles[currentStep],
+            style: TextStyle(
+              color: primaryThemeColor.shade800,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: LinearProgressIndicator(
+              value: (currentStep + 1) / titles.length,
+              minHeight: 4,
+              backgroundColor: AppColors.divider,
+              color: primaryThemeColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepActions extends StatelessWidget {
+  const _StepActions({
+    required this.currentStep,
+    required this.lastStep,
+    required this.onBack,
+    required this.onContinue,
+  });
+
+  final int currentStep;
+  final int lastStep;
+  final VoidCallback onBack;
+  final VoidCallback onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.divider)),
+        ),
+        child: Row(
+          children: [
+            if (currentStep > 0)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onBack,
+                  child: const Text('Voltar'),
+                ),
+              ),
+            if (currentStep > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: onContinue,
+                child: Text(currentStep == lastStep ? 'Finalizar' : 'Continuar'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BalanceInfoRow extends StatelessWidget {
+  const _BalanceInfoRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final double value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted =
+        'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? primaryThemeColor.withValues(alpha: 0.08)
+            : AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: emphasize
+              ? primaryThemeColor.withValues(alpha: 0.25)
+              : AppColors.divider,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: emphasize
+                    ? primaryThemeColor.shade800
+                    : AppColors.textSecondary,
+                fontSize: 13,
+                fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            formatted,
+            style: TextStyle(
+              color: emphasize
+                  ? primaryThemeColor.shade800
+                  : AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Card extends StatelessWidget {
+  const _Card({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.divider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _LoadingOverlay extends StatelessWidget {
+  const _LoadingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.45),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: primaryThemeColor),
+            const SizedBox(height: AppSpacing.md),
+            const Text(
+              'Finalizando a sua compra...',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
