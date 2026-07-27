@@ -158,25 +158,57 @@ class CashbackPage extends GetView<CashbackController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Obx(
-                () => Text(
-                  'Cashback disponível: R\$ ${controller.usedCashback.value.toStringAsFixed(2).replaceAll('.', ',')}',
-                  style: TextStyle(
-                    color: primaryThemeColor.shade800,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+              const Text(
+                'Usar cashback nesta compra',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               const Text(
-                'Se quiser, use parte do saldo nesta compra. Ao utilizar cashback, esta compra não gera novos ganhos.',
+                'Na mesma loja você pode usar 100% do saldo ganho nela. Em outras lojas, até 50% do saldo das demais. Se usar cashback, esta compra não gera novos ganhos.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   height: 1.4,
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
+              Obx(() {
+                if (controller.isLoadingBalance.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    _BalanceInfoRow(
+                      label: 'Saldo nesta loja (100%)',
+                      value: controller.saldoMesmaLoja.value,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Saldo em outras lojas',
+                      value: controller.saldoParceiraBruta.value,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Utilizável de outras lojas (50%)',
+                      value: controller.saldoParceiraUtilizavel.value,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _BalanceInfoRow(
+                      label: 'Máximo nesta compra',
+                      value: controller.maximoUtilizavel.value,
+                      emphasize: true,
+                    ),
+                  ],
+                );
+              }),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: controller.utilizaValorController,
@@ -189,35 +221,57 @@ class CashbackPage extends GetView<CashbackController> {
                 ),
                 onChanged: controller.onUtilizaValorChanged,
               ),
+              Obx(() {
+                if (controller.utilizaValor.value <= 0) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Text(
+                    'Esta compra não gerará cashback.',
+                    style: TextStyle(
+                      color: AppColors.error.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         );
       case 3:
-      default:
-        return const _Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Confirmar envio',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+        return _Card(
+          child: Obx(() {
+            final using = controller.utilizaValor.value > 0;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Confirmar envio',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              SizedBox(height: AppSpacing.sm),
-              Text(
-                'Sua compra será analisada pelo lojista. Assim que for confirmada, você receberá uma notificação no app informando a aprovação.',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                  height: 1.45,
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  using
+                      ? 'Você está utilizando R\$ ${controller.utilizaValor.value.toStringAsFixed(2).replaceAll('.', ',')} de cashback nesta loja. Esta compra não gerará novos cashbacks. O comprovante seguirá para análise do lojista.'
+                      : 'Sua compra será analisada pelo lojista. Após a aprovação, você receberá 5% de cashback e uma notificação no app.',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    height: 1.45,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -346,6 +400,65 @@ class _StepActions extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BalanceInfoRow extends StatelessWidget {
+  const _BalanceInfoRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final double value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted =
+        'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? primaryThemeColor.withValues(alpha: 0.08)
+            : AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: emphasize
+              ? primaryThemeColor.withValues(alpha: 0.25)
+              : AppColors.divider,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: emphasize
+                    ? primaryThemeColor.shade800
+                    : AppColors.textSecondary,
+                fontSize: 13,
+                fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            formatted,
+            style: TextStyle(
+              color: emphasize
+                  ? primaryThemeColor.shade800
+                  : AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

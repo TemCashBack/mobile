@@ -96,12 +96,16 @@ class CompanyBottomSheet {
     );
   }
 
-  void _calcDistance(
+  void _goToCashback(String id) {
+    cashbackController.setCompanyId(id);
+    Get.toNamed(AppRoutes.CASHBACK);
+  }
+
+  Future<void> _calcDistance(
     String id,
     CompanyModel modelCompany,
     Position currentLocation,
   ) async {
-    String mensagem;
     distance = Geolocator.distanceBetween(
       currentLocation.latitude,
       currentLocation.longitude,
@@ -109,11 +113,11 @@ class CompanyBottomSheet {
       modelCompany.geolocalizacao.lng,
     );
     if (distance > 15) {
-      mensagem = 'Você deve estar mais próximo para efetuar a compra.';
-      await showAlert(mensagem);
+      await showAlert(
+        'Você deve estar mais próximo para efetuar a compra.',
+      );
     } else {
-      cashbackController.setCompanyId(id);
-      Get.toNamed(AppRoutes.CASHBACK);
+      _goToCashback(id);
     }
   }
 
