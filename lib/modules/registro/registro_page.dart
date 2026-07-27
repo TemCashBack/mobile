@@ -1,216 +1,226 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/modules/registro/registro_controller.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class RegistroPage extends GetView<RegistroController> {
-  RegistroPage({super.key});
+  const RegistroPage({super.key});
+
+  static const _stepTitles = [
+    'E-mail',
+    'Nome completo',
+    'Endereço',
+    'Senha',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Novo Cadastro'),
+        title: const Text('Novo Cadastro'),
         backgroundColor: secondaryThemeColor,
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
-        iconTheme: IconThemeData(
-          color: Colors.white, // Cor do ícone do Drawer
+        foregroundColor: Colors.white,
+      ),
+      body: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _StepHeader(
+              currentStep: controller.currentStep.value,
+              titles: _stepTitles,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: _buildStepContent(controller, controller.currentStep.value),
+              ),
+            ),
+            _StepActions(
+              currentStep: controller.currentStep.value,
+              lastStep: _stepTitles.length - 1,
+              onNext: controller.nextStep,
+              onBack: controller.previousStep,
+            ),
+          ],
         ),
       ),
-      body: Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: primaryThemeColor, // Cor do Step ativo
-              secondary: secondaryThemeColor),
-        ),
+    );
+  }
+
+  Widget _buildStepContent(RegistroController controller, int step) {
+    switch (step) {
+      case 0:
+        return TextField(
+          controller: controller.emailController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(
+            labelText: 'E-mail',
+            errorText: controller.validateEmail(controller.emailController.text),
+          ),
+        );
+      case 1:
+        return TextField(
+          controller: controller.nomeController,
+          decoration: InputDecoration(
+            labelText: 'Nome completo',
+            errorText: controller.validateName(controller.nomeController.text),
+          ),
+        );
+      case 2:
+        return Column(
+          children: [
+            TextField(
+              controller: controller.cepController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'CEP',
+                errorText: controller.validateCep(controller.cepController.text),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: controller.fetchAddressByCep,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.ruaController,
+              decoration: const InputDecoration(labelText: 'Rua'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.numeroController,
+              decoration: const InputDecoration(labelText: 'Nº'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.bairroController,
+              decoration: const InputDecoration(labelText: 'Bairro'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.cidadeController,
+              decoration: const InputDecoration(labelText: 'Cidade'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.estadoController,
+              decoration: const InputDecoration(labelText: 'Estado'),
+            ),
+          ],
+        );
+      case 3:
+        return Column(
+          children: [
+            TextField(
+              controller: controller.passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Senha',
+                errorText:
+                    controller.validatePassword(controller.passwordController.text),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: controller.confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Confirmar senha',
+                errorText: controller.validateConfirmPassword(
+                  controller.confirmPasswordController.text,
+                ),
+              ),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+}
+
+class _StepHeader extends StatelessWidget {
+  const _StepHeader({
+    required this.currentStep,
+    required this.titles,
+  });
+
+  final int currentStep;
+  final List<String> titles;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Etapa ${currentStep + 1} de ${titles.length}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            titles[currentStep],
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: primaryThemeColor.shade700,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LinearProgressIndicator(
+            value: (currentStep + 1) / titles.length,
+            backgroundColor: AppColors.divider,
+            color: primaryThemeColor,
+            minHeight: 4,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepActions extends StatelessWidget {
+  const _StepActions({
+    required this.currentStep,
+    required this.lastStep,
+    required this.onNext,
+    required this.onBack,
+  });
+
+  final int currentStep;
+  final int lastStep;
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            Expanded(
-              child: Obx(
-                () => Stepper(
-                  currentStep: controller.currentStep.value,
-                  onStepContinue: controller.nextStep,
-                  onStepCancel: controller.previousStep,
-                  steps: [
-                    Step(
-                      title: Text(
-                        'Cadastro de E-mail',
-                        style: TextStyle(color: secondaryThemeColor),
-                      ),
-                      content: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextField(
-                          controller: controller.emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            hintStyle: TextStyle(fontSize: 8),
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10, // Altura do TextField
-                              horizontal: 12, // Espaço horizontal
-                            ),
-                            labelText: 'E-mail',
-                            labelStyle: TextStyle(fontSize: 12),
-                            border: const OutlineInputBorder(),
-                            errorText: controller.currentStep.value == 0
-                                ? controller.validateEmail(
-                                    controller.emailController.text)
-                                : null,
-                          ),
-                        ),
-                      ),
-                      isActive: controller.currentStep.value >= 1,
-                    ),
-                    Step(
-                      title: Text(
-                        'Cadastro de Nome Completo',
-                        style: TextStyle(color: secondaryThemeColor),
-                      ),
-                      content: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextField(
-                          controller: controller.nomeController,
-                          decoration: InputDecoration(
-                            labelText: 'Nome Completo',
-                            border: const OutlineInputBorder(),
-                            errorText: controller.currentStep.value == 1
-                                ? controller.validateName(
-                                    controller.nomeController.text)
-                                : null,
-                          ),
-                        ),
-                      ),
-                      isActive: controller.currentStep.value >= 2,
-                    ),
-                    Step(
-                      title: Text(
-                        'Cadastro de Endereço',
-                        style: TextStyle(color: secondaryThemeColor),
-                      ),
-                      content: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: controller.cepController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'CEP',
-                                border: OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: Icon(Icons.search),
-                                  onPressed: controller.fetchAddressByCep,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.ruaController,
-                              decoration: InputDecoration(
-                                labelText: 'Rua',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.numeroController,
-                              decoration: InputDecoration(
-                                labelText: 'Nº',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.bairroController,
-                              decoration: InputDecoration(
-                                labelText: 'Bairro',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.cidadeController,
-                              decoration: InputDecoration(
-                                labelText: 'Cidade',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.estadoController,
-                              decoration: InputDecoration(
-                                labelText: 'Estado',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      isActive: controller.currentStep.value >= 3,
-                    ),
-                    Step(
-                      title: Text(
-                        'Cadastro de Senha',
-                        style: TextStyle(color: secondaryThemeColor),
-                      ),
-                      content: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: controller.passwordController,
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                labelText: 'Senha',
-                                border: OutlineInputBorder(),
-                                errorText: controller.validatePassword(
-                                    controller.passwordController.text),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: controller.confirmPasswordController,
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                labelText: 'Confirmar Senha',
-                                border: OutlineInputBorder(),
-                                errorText: controller.validateConfirmPassword(
-                                    controller.confirmPasswordController.text),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      isActive: controller.currentStep.value >= 4,
-                    ),
-                  ],
-                  controlsBuilder:
-                      (BuildContext context, ControlsDetails details) {
-                    return Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: details.onStepContinue,
-                          child: Text(
-                            controller.currentStep.value == 3
-                                ? 'Finalizar'
-                                : 'Próximo',
-                            style: TextStyle(
-                                fontSize: 12, color: primaryThemeColor),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (controller.currentStep.value > 0)
-                          TextButton(
-                            onPressed: details.onStepCancel,
-                            child: Text(
-                              'Voltar',
-                              style: TextStyle(
-                                  fontSize: 12, color: primaryThemeColor),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
+            if (currentStep > 0)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onBack,
+                  child: const Text('Voltar'),
                 ),
+              ),
+            if (currentStep > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              flex: currentStep > 0 ? 1 : 1,
+              child: ElevatedButton(
+                onPressed: onNext,
+                child: Text(currentStep == lastStep ? 'Finalizar' : 'Próximo'),
               ),
             ),
           ],

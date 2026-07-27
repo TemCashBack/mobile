@@ -51,7 +51,6 @@ void main() async {
   Get.put(FirebaseMessagingController());
   Get.put(FirebaseInAppMessagingController());
   Get.put(CustomerController());
-  //Get.put(RemoteConfigController());
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

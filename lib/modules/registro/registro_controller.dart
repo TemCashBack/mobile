@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class RegistroController extends GetxController {
@@ -95,7 +96,7 @@ class RegistroController extends GetxController {
     if (validateCep(cep) != null) {
       Get.snackbar('Erro', 'CEP inválido.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           colorText: Colors.white);
       return;
     }
@@ -124,7 +125,7 @@ class RegistroController extends GetxController {
     } catch (e) {
       Get.snackbar('Erro', 'Não foi possível buscar o endereço.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           colorText: Colors.white);
     }
   }
@@ -137,8 +138,20 @@ class RegistroController extends GetxController {
       case 1:
         return validateName(nomeController.text);
       case 2:
-        return validateCep(cepController.text);
+        if (validateCep(cepController.text) != null) {
+          return validateCep(cepController.text);
+        }
+        if (ruaController.text.trim().isEmpty) {
+          return 'Informe a rua.';
+        }
+        if (numeroController.text.trim().isEmpty) {
+          return 'Informe o número.';
+        }
+        return null;
       case 3:
+        final passwordError =
+            validatePassword(passwordController.text);
+        if (passwordError != null) return passwordError;
         return validateConfirmPassword(confirmPasswordController.text);
       default:
         return null;
@@ -159,7 +172,7 @@ class RegistroController extends GetxController {
         'Erro',
         response,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
         colorText: Colors.white,
       );
     }

@@ -23,8 +23,8 @@ class ListaPage extends GetView<ListaController> {
     final locationController = Get.find<LocationController>();
     TextEditingController searchController = TextEditingController();
     List<DocumentSnapshot> empresas = [];
-    final categoriesRepository = CategoryRepository();
-    final companiesRepository = CompanyRepository();
+    final categoriesRepository = Get.find<CategoryRepository>();
+    final companiesRepository = Get.find<CompanyRepository>();
     return Column(
       children: [
         Container(

@@ -10,7 +10,7 @@ import 'package:mobile/modules/cashback/cashback_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/utils/social_launcher.dart';
 import 'package:mobile/ui/theme/colors.dart';
-import 'package:mobile/ui/widgets/buttons/PhoneButton.dart';
+import 'package:mobile/ui/widgets/buttons/phone_button.dart';
 import 'package:mobile/ui/widgets/buttons/informar_compra_button.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 import 'package:url_launcher/url_launcher.dart';

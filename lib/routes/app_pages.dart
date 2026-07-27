@@ -1,14 +1,9 @@
 import 'package:get/get.dart';
-import 'package:mobile/modules/boas_vindas/boas_vindas_binding.dart';
 import 'package:mobile/modules/boas_vindas/boas_vindas_page.dart';
 import 'package:mobile/modules/cashback/cashback_binding.dart';
 import 'package:mobile/modules/cashback/cashback_page.dart';
 import 'package:mobile/modules/estabelecimentos/estabelecimentos_binding.dart';
 import 'package:mobile/modules/estabelecimentos/estabelecimentos_page.dart';
-import 'package:mobile/modules/estabelecimentos/lista/lista_binding.dart';
-import 'package:mobile/modules/estabelecimentos/lista/lista_page.dart';
-import 'package:mobile/modules/estabelecimentos/mapa/mapa_binding.dart';
-import 'package:mobile/modules/estabelecimentos/mapa/mapa_page.dart';
 import 'package:mobile/modules/home/home_binding.dart';
 import 'package:mobile/modules/home/home_page.dart';
 import 'package:mobile/modules/login/login_binding.dart';
@@ -32,7 +27,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.BOASVINDAS,
       page: () => BoasVindasPage(),
-      binding: BoasVindasBinding(),
     ),
     GetPage(
       name: AppRoutes.LOGIN,
@@ -54,18 +48,6 @@ class AppPages {
       name: AppRoutes.ESTABELECIMENTOS,
       page: () => EstabelecimentosPage(),
       binding: EstabelecimentosBinding(),
-      middlewares: [AuthMiddleware()],
-    ),
-    GetPage(
-      name: AppRoutes.ESTABELECIMENTOS_MAPA,
-      page: () => const MapaPage(),
-      binding: MapaBinding(),
-      middlewares: [AuthMiddleware()],
-    ),
-    GetPage(
-      name: AppRoutes.ESTABELECIMENTOS_LISTA,
-      page: () => const ListaPage(),
-      binding: ListaBinding(),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(

@@ -12,10 +12,10 @@ class GeolocationModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['accuracy'] = accuracy;
-    data['lng'] = lng;
-    data['lat'] = lat;
-    return data;
+    return {
+      'accuracy': accuracy,
+      'lng': lng,
+      'lat': lat,
+    };
   }
 }

@@ -8,7 +8,7 @@ import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
 class CashbackPage extends GetView<CashbackController> {
-  CashbackPage({super.key});
+  const CashbackPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class CashbackPage extends GetView<CashbackController> {
         if (controller.isLoading.value) {
           return Container(
             width: MediaQuery.of(context).size.width,
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

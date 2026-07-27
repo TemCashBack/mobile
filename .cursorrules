@@ -1,0 +1,64 @@
+# TemCashback — Mobile
+
+## Stack e arquitetura
+
+- Flutter (SDK ^3.6) com **GetX** (rotas, bindings, controllers, estado reativo).
+- **Sem backend próprio.** Toda persistência, auth e serviços usam **Firebase**:
+  - Auth, Firestore, Storage, Messaging, In-App Messaging, Remote Config, Installations.
+- Não introduzir APIs REST/GraphQL próprias, servers ou BaaS alternativos sem pedido explícito.
+- Preferir `GetxController`, `Bindings`, `Obx`/`GetBuilder`, `Get.toNamed` / `GetPage` e middlewares GetX já usados no projeto.
+
+## Plataformas suportadas
+
+O app deve funcionar corretamente em **3 alvos**:
+
+1. **Android** (somente celular)
+2. **iOS** (somente celular)
+3. **Web**
+
+### Restrições Android / iOS
+
+- Alvo oficial: **smartphones**.
+- **Não** suporte a Tablet, Watch (Wear OS / watchOS) ou TV (Android TV / tvOS).
+- Em configs nativas e stores: declarar/manter suporte a phones; evitar layouts, capabilities e assets pensados para tablet/watch/TV.
+- Não adicionar dependências ou features exclusivas de tablet, wearables ou TV.
+
+### Web
+
+- Código e plugins devem considerar Flutter Web (ex.: mapas, câmera, storage, notificações).
+- Usar `kIsWeb` / checagens de plataforma quando APIs nativas não existirem na web.
+- Evitar APIs só mobile sem fallback ou guard na web.
+
+## Organização do código
+
+Seguir a estrutura existente:
+
+- `lib/modules/` — páginas, controllers e bindings por feature
+- `lib/controllers/` — controllers globais (auth, customer, location, Firebase, etc.)
+- `lib/data/models/` e `lib/data/repositories/` — modelos e acesso Firestore/Storage
+- `lib/routes/` — `app_pages`, `app_routes`, middlewares
+- `lib/ui/` — tema, widgets e componentes reutilizáveis
+- `lib/core/` — helpers e constantes (ex.: collections Firestore)
+
+## Convenções GetX + Firebase
+
+- Uma feature = page + controller + binding quando fizer sentido.
+- Repositories encapsulam Firestore/Storage; controllers não misturam queries soltas sem necessidade.
+- Auth via `FirebaseAuth`; sessão e guards via controllers/middlewares GetX existentes.
+- Tratar `FirebaseAuthException` e erros Firebase de forma explícita (mensagens úteis ao usuário).
+- Collections: preferir constantes em `lib/core/constants/` em vez de strings soltas.
+
+## UI e UX multiplataforma
+
+- Layouts pensados para **celular** (portrait) em Android/iOS; na web, experiência utilizável em viewport de desktop/mobile browser.
+- Reutilizar tema/widgets em `lib/ui/` (`app_theme`, `app_styles`, `colors`).
+- Não assumir tamanho de tablet; evitar breakpoints de tablet como alvo de produto.
+- Plugins com suporte limitado na web precisam de alternativa ou desabilitação graciosa.
+
+## Ao implementar features
+
+1. Verificar impacto em **Android phone**, **iOS phone** e **Web**.
+2. Não expandir o produto para tablet/watch/TV.
+3. Preferir Firebase + GetX já adotados; não inventar camadas de backend.
+4. Manter bindings/DI GetX consistentes com o módulo.
+5. Código e comentários de UI em português quando o projeto já usar PT-BR.

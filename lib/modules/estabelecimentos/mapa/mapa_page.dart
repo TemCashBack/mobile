@@ -20,11 +20,11 @@ class MapaPage extends StatefulWidget {
   const MapaPage({super.key});
 
   @override
-  _MapaPageState createState() => _MapaPageState();
+  State<MapaPage> createState() => _MapaPageState();
 }
 
 class _MapaPageState extends State<MapaPage> {
-  final companiesRepository = CompanyRepository();
+  final companiesRepository = Get.find<CompanyRepository>();
   final Completer<GoogleMapController> _googleMapController = Completer();
   final LocationController locationController = Get.find<LocationController>();
 

@@ -14,7 +14,7 @@ import 'package:mobile/ui/widgets/drawer_custom.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class HomePage extends GetView<HomeController> {
-  HomePage({super.key});
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {

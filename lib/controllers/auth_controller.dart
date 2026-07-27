@@ -65,6 +65,10 @@ class AuthController extends GetxController {
   void _navigateIfNeeded(String targetRoute) {
     final currentRoute = Get.currentRoute;
     if (currentRoute == AppRoutes.REGISTRO) return;
+    if (currentRoute == AppRoutes.LOGIN &&
+        targetRoute == AppRoutes.BOASVINDAS) {
+      return;
+    }
     if (currentRoute == targetRoute) return;
     if (_lastTargetRoute == targetRoute &&
         currentRoute.isNotEmpty &&
