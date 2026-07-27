@@ -39,8 +39,10 @@ class CustomerModel {
   }
 
   Map<String, dynamic> toJson() {
+    final normalizedEmail = email?.trim().toLowerCase();
     return {
-      'email': email,
+      'email': normalizedEmail,
+      'emailLower': normalizedEmail,
       'nomeCompleto': nomeCompleto,
       'cep': cep,
       'rua': rua,

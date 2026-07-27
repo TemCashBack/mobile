@@ -8,6 +8,7 @@ import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class RegistroController extends GetxController {
@@ -16,6 +17,7 @@ class RegistroController extends GetxController {
   final CustomerRepository customerRepository;
 
   var currentStep = 0.obs;
+  var isCheckingEmail = false.obs;
 
   final emailController = TextEditingController();
   final nomeController = TextEditingController();
@@ -158,24 +160,157 @@ class RegistroController extends GetxController {
     }
   }
 
-  // Próxima etapa com validação
-  void nextStep() {
-    String? response = validateCurrentStep();
-    if (response == null) {
-      if (currentStep.value < 3) {
-        currentStep.value++;
-      } else {
-        completeRegistration();
-      }
-    } else {
-      Get.snackbar(
-        'Erro',
-        response,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error,
-        colorText: Colors.white,
-      );
+  Future<bool> isEmailAlreadyRegistered(String email) async {
+    final normalized = email.trim().toLowerCase();
+
+    if (await customerRepository.existsByEmail(normalized)) {
+      return true;
     }
+
+    return _existsInFirebaseAuth(normalized);
+  }
+
+  /// Verifica no Auth tentando criar a conta. Se o e-mail já existir,
+  /// o Firebase retorna [email-already-in-use]. Se criar, remove o usuário
+  /// temporário imediatamente.
+  Future<bool> _existsInFirebaseAuth(String email) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: _temporaryPassword(),
+      );
+
+      try {
+        await credential.user?.delete();
+      } finally {
+        if (_auth.currentUser != null) {
+          await _auth.signOut();
+        }
+      }
+      return false;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        return true;
+      }
+      rethrow;
+    }
+  }
+
+  String _temporaryPassword() {
+    return 'Tmp!${DateTime.now().microsecondsSinceEpoch}Aa1';
+  }
+
+  // Próxima etapa com validação
+  Future<void> nextStep() async {
+    final response = validateCurrentStep();
+    if (response != null) {
+      _showErrorDialog(title: 'Atenção', message: response);
+      return;
+    }
+
+    if (currentStep.value == 0) {
+      isCheckingEmail.value = true;
+      try {
+        final email = emailController.text.trim().toLowerCase();
+        emailController.text = email;
+
+        final alreadyRegistered = await isEmailAlreadyRegistered(email);
+        if (alreadyRegistered) {
+          _showErrorDialog(
+            title: 'E-mail já cadastrado',
+            message:
+                'Já existe uma conta com este e-mail. Faça login ou use outro e-mail.',
+          );
+          return;
+        }
+      } catch (_) {
+        _showErrorDialog(
+          title: 'Erro',
+          message: 'Não foi possível verificar o e-mail. Tente novamente.',
+        );
+        return;
+      } finally {
+        isCheckingEmail.value = false;
+      }
+    }
+
+    if (currentStep.value < 3) {
+      currentStep.value++;
+    } else {
+      await completeRegistration();
+    }
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+  }) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.error,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryThemeColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Get.back(),
+                  child: const Text('Entendi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+    );
   }
 
   // Voltar para a etapa anterior
@@ -206,12 +341,12 @@ class RegistroController extends GetxController {
 
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: emailController.text,
+        email: emailController.text.trim().toLowerCase(),
         password: passwordController.text,
       );
 
       CustomerModel customerModel = CustomerModel(
-          email: emailController.text,
+          email: emailController.text.trim().toLowerCase(),
           nomeCompleto: nomeController.text,
           cep: cepController.text,
           rua: ruaController.text,

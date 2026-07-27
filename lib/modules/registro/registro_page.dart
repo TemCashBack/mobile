@@ -39,6 +39,7 @@ class RegistroPage extends GetView<RegistroController> {
             _StepActions(
               currentStep: controller.currentStep.value,
               lastStep: _stepTitles.length - 1,
+              isLoading: controller.isCheckingEmail.value,
               onNext: controller.nextStep,
               onBack: controller.previousStep,
             ),
@@ -191,12 +192,14 @@ class _StepActions extends StatelessWidget {
   const _StepActions({
     required this.currentStep,
     required this.lastStep,
+    required this.isLoading,
     required this.onNext,
     required this.onBack,
   });
 
   final int currentStep;
   final int lastStep;
+  final bool isLoading;
   final VoidCallback onNext;
   final VoidCallback onBack;
 
@@ -211,16 +214,24 @@ class _StepActions extends StatelessWidget {
             if (currentStep > 0)
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onBack,
+                  onPressed: isLoading ? null : onBack,
                   child: const Text('Voltar'),
                 ),
               ),
             if (currentStep > 0) const SizedBox(width: AppSpacing.sm),
             Expanded(
-              flex: currentStep > 0 ? 1 : 1,
               child: ElevatedButton(
-                onPressed: onNext,
-                child: Text(currentStep == lastStep ? 'Finalizar' : 'Próximo'),
+                onPressed: isLoading ? null : onNext,
+                child: isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(currentStep == lastStep ? 'Finalizar' : 'Próximo'),
               ),
             ),
           ],

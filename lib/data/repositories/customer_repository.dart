@@ -14,6 +14,25 @@ class CustomerRepository {
     await customerCollection.add(customer.toJson());
   }
 
+  Future<bool> existsByEmail(String email) async {
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+
+    final byLower = await customerCollection
+        .where('emailLower', isEqualTo: normalized)
+        .limit(1)
+        .get();
+    if (byLower.docs.isNotEmpty) return true;
+
+    final byEmail = await customerCollection
+        .where('email', isEqualTo: normalized)
+        .limit(1)
+        .get();
+    if (byEmail.docs.isNotEmpty) return true;
+
+    return false;
+  }
+
   Future<DocumentSnapshot?> getCustomerByUID(String uid) async {
     final customerSnapshot =
         await customerCollection.where('uid', isEqualTo: uid).get();
