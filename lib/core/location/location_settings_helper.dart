@@ -32,9 +32,10 @@ class LocationSettingsHelper {
           accuracy: LocationAccuracy.best,
           distanceFilter: _distanceFilter,
           timeLimit: _timeLimit,
-          activityType: ActivityType.otherNavigation,
-          pauseLocationUpdatesAutomatically: false,
+          activityType: ActivityType.other,
+          pauseLocationUpdatesAutomatically: true,
           showBackgroundLocationIndicator: false,
+          allowBackgroundLocationUpdates: false,
         );
       default:
         return LocationSettings(
