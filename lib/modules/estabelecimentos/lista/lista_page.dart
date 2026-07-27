@@ -106,7 +106,7 @@ class ListaPage extends GetView<ListaController> {
                         company: company,
                         onTap: () {
                           CompanyBottomSheet(context: context).showCompany(
-                            company.id,
+                            item.id,
                             company,
                             locationController.currentPosition.value,
                           );

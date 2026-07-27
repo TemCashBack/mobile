@@ -168,7 +168,7 @@ class CashbackPage extends GetView<CashbackController> {
               ),
               const SizedBox(height: AppSpacing.sm),
               const Text(
-                'Na mesma loja você pode usar 100% do saldo ganho nela. Em outras lojas, até 50% do saldo das demais. Se usar cashback, esta compra não gera novos ganhos.',
+                'Na mesma loja você usa 100% do saldo ganho nela. Em outras lojas, no máximo 50% de cada crédito (vitalício). O uso não pode passar do valor da compra e, se houver uso, esta compra não gera novos ganhos.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -184,6 +184,11 @@ class CashbackPage extends GetView<CashbackController> {
                   );
                 }
 
+                // Lê obs para o Obx reagir a saldo e valor da compra.
+                final maximo = controller.maximoUtilizavel;
+                controller.valorCompra.value;
+                controller.maximoSaldo.value;
+
                 return Column(
                   children: [
                     _BalanceInfoRow(
@@ -197,13 +202,13 @@ class CashbackPage extends GetView<CashbackController> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _BalanceInfoRow(
-                      label: 'Utilizável de outras lojas (50%)',
+                      label: 'Utilizável de outras lojas (50% vitalício)',
                       value: controller.saldoParceiraUtilizavel.value,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _BalanceInfoRow(
                       label: 'Máximo nesta compra',
-                      value: controller.maximoUtilizavel.value,
+                      value: maximo,
                       emphasize: true,
                     ),
                   ],
@@ -258,7 +263,7 @@ class CashbackPage extends GetView<CashbackController> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   using
-                      ? 'Você está utilizando R\$ ${controller.utilizaValor.value.toStringAsFixed(2).replaceAll('.', ',')} de cashback nesta loja. Esta compra não gerará novos cashbacks. O comprovante seguirá para análise do lojista.'
+                      ? 'Você está utilizando R\$ ${controller.utilizaValor.value.toStringAsFixed(2).replaceAll('.', ',')} de cashback nesta loja (reserva pendente de aprovação). Esta compra não gerará novos cashbacks.'
                       : 'Sua compra será analisada pelo lojista. Após a aprovação, você receberá 5% de cashback e uma notificação no app.',
                   style: const TextStyle(
                     color: AppColors.textSecondary,

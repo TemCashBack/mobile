@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -35,13 +36,16 @@ class CashbackController extends GetxController {
   final saldoMesmaLoja = 0.0.obs;
   final saldoParceiraBruta = 0.0.obs;
   final saldoParceiraUtilizavel = 0.0.obs;
-  final maximoUtilizavel = 0.0.obs;
+  final maximoSaldo = 0.0.obs;
 
   late final MoneyMaskedTextController valorCompraController;
   late final MoneyMaskedTextController utilizaValorController;
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
   XFile? _pickedImage;
+
+  double get maximoUtilizavel =>
+      math.min(maximoSaldo.value, valorCompra.value);
 
   bool get vaiGerarCashback => utilizaValor.value <= 0;
 
@@ -85,16 +89,26 @@ class CashbackController extends GetxController {
     } else {
       valorCompra.value = inputValue;
     }
+    _clampUtilizaValor();
   }
 
   void onUtilizaValorChanged(String _) {
-    final inputValue = utilizaValorController.numberValue;
-    final maxUsed = maximoUtilizavel.value;
+    _clampUtilizaValor(fromInput: true);
+  }
+
+  void _clampUtilizaValor({bool fromInput = false}) {
+    final inputValue = fromInput
+        ? utilizaValorController.numberValue
+        : utilizaValor.value;
+    final maxUsed = maximoUtilizavel;
     if (inputValue > maxUsed) {
       utilizaValorController.updateValue(maxUsed);
       utilizaValor.value = maxUsed;
     } else {
       utilizaValor.value = inputValue;
+      if (!fromInput) {
+        utilizaValorController.updateValue(inputValue);
+      }
     }
   }
 
@@ -105,7 +119,7 @@ class CashbackController extends GetxController {
       saldoMesmaLoja.value = 0;
       saldoParceiraBruta.value = 0;
       saldoParceiraUtilizavel.value = 0;
-      maximoUtilizavel.value = 0;
+      maximoSaldo.value = 0;
       return;
     }
 
@@ -125,12 +139,8 @@ class CashbackController extends GetxController {
     saldoMesmaLoja.value = availability.mesmaLoja;
     saldoParceiraBruta.value = availability.parceiraBruta;
     saldoParceiraUtilizavel.value = availability.parceiraUtilizavel;
-    maximoUtilizavel.value = availability.maximoUtilizavel;
-
-    if (utilizaValor.value > availability.maximoUtilizavel) {
-      utilizaValorController.updateValue(availability.maximoUtilizavel);
-      utilizaValor.value = availability.maximoUtilizavel;
-    }
+    maximoSaldo.value = availability.maximoUtilizavel;
+    _clampUtilizaValor();
   }
 
   Future<String> saveCashBack() async {
@@ -143,9 +153,13 @@ class CashbackController extends GetxController {
     }
 
     onValorCompraChanged('');
-    onUtilizaValorChanged('');
+    _clampUtilizaValor();
 
     final usingCashback = utilizaValor.value > 0;
+    if (usingCashback && utilizaValor.value > valorCompra.value + 0.001) {
+      throw StateError('Cashback não pode exceder o valor da compra.');
+    }
+
     final earnedCashback =
         usingCashback ? 0.0 : valorCompra.value * (5 / 100);
     cashback.value = earnedCashback;
@@ -160,6 +174,8 @@ class CashbackController extends GetxController {
       valor: valorCompra.value,
       cashback: earnedCashback,
       cashbackRestante: earnedCashback,
+      parceiraRestante: earnedCashback * 0.5,
+      valorUtilizado: usingCashback ? utilizaValor.value : 0,
       dateTime: Timestamp.fromDate(dateTime),
       date: onlyDate,
       imagem: downloadUrl,
@@ -170,7 +186,8 @@ class CashbackController extends GetxController {
     final compraId = await cashbackRepository.save(cashbackModel);
 
     if (usingCashback) {
-      await cashbackRepository.redeemCashback(
+      // Reserva atômica: só confirma/estorna quando o lojista aprovar/rejeitar.
+      await cashbackRepository.reservarCashback(
         customerId: customerId,
         companyId: companyId.value,
         valorUtilizado: utilizaValor.value,
