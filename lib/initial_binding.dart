@@ -16,7 +16,10 @@ class InitialBinding extends Bindings {
     Get.lazyPut<LocationController>(() => LocationController(), fenix: true);
 
     Get.put<AuthController>(
-      AuthController(customerRepository: Get.find<CustomerRepository>()),
+      AuthController(
+        customerRepository: Get.find<CustomerRepository>(),
+        cashbackRepository: Get.find<CashbackRepository>(),
+      ),
       permanent: true,
     );
   }

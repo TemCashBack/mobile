@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -105,6 +106,16 @@ class CustomDrawer extends StatelessWidget {
                 const Divider(height: 24, indent: 20, endIndent: 20),
                 _DrawerItem(
                   leading: FaIcon(
+                    FontAwesomeIcons.trashCan,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  label: 'Excluir conta',
+                  onTap: () => _confirmDeleteAccount(context),
+                  isDestructive: true,
+                ),
+                _DrawerItem(
+                  leading: FaIcon(
                     FontAwesomeIcons.doorOpen,
                     color: AppColors.error,
                     size: 20,
@@ -117,6 +128,222 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    Navigator.of(context).pop();
+
+    final passwordController = TextEditingController();
+    final needsPassword = authController.usesPasswordProvider;
+
+    final confirmed = await Get.dialog<bool>(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_forever_rounded,
+                  color: AppColors.error,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Text(
+                'Excluir conta?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                'Esta ação é permanente. Seus dados pessoais, selfie, '
+                'cashbacks e histórico serão removidos e você não poderá '
+                'recuperar a conta.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              if (needsPassword) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirme com sua senha',
+                    hintText: 'Senha',
+                  ),
+                ),
+              ] else if (authController.usesGoogleProvider) ...[
+                const SizedBox(height: AppSpacing.md),
+                const Text(
+                  'Você precisará confirmar com a conta Google na próxima etapa.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(result: false),
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => Get.back(result: true),
+                      child: const Text('Excluir'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+    );
+
+    if (confirmed != true) {
+      passwordController.dispose();
+      return;
+    }
+
+    try {
+      await authController.deleteAccount(
+        password: needsPassword ? passwordController.text : null,
+      );
+    } on FirebaseAuthException catch (e) {
+      _showDeleteError(_messageForDeleteError(e));
+    } catch (_) {
+      _showDeleteError(
+        'Não foi possível excluir a conta. Tente novamente em alguns instantes.',
+      );
+    } finally {
+      passwordController.dispose();
+    }
+  }
+
+  String _messageForDeleteError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'wrong-password':
+      case 'invalid-credential':
+      case 'INVALID_LOGIN_CREDENTIALS':
+        return 'Senha incorreta. Confira e tente novamente.';
+      case 'missing-password':
+        return 'Informe a senha para confirmar a exclusão.';
+      case 'aborted-by-user':
+        return 'Exclusão cancelada. Sua conta permanece ativa.';
+      case 'requires-recent-login':
+        return 'Por segurança, faça login novamente e tente excluir a conta.';
+      case 'network-request-failed':
+        return 'Falha de conexão. Verifique sua internet e tente novamente.';
+      default:
+        return e.message?.isNotEmpty == true
+            ? e.message!
+            : 'Não foi possível excluir a conta. Tente novamente.';
+    }
+  }
+
+  void _showDeleteError(String message) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.error,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Text(
+                'Não foi possível excluir',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryThemeColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Get.back(),
+                  child: const Text('Entendi'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -57,4 +57,33 @@ class CustomerRepository {
 
     await customerSnapshot.docs.first.reference.update({'photoURL': photoURL});
   }
+
+  /// Remove todos os documentos do cliente e devolve URLs de foto para limpar no Storage.
+  Future<List<String>> deleteAllByUid(String uid) async {
+    final snapshot =
+        await customerCollection.where('uid', isEqualTo: uid).get();
+    if (snapshot.docs.isEmpty) return const [];
+
+    final photoUrls = <String>[];
+    var batch = firestore.batch();
+    var ops = 0;
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      if (data is Map<String, dynamic>) {
+        final photo = data['photoURL']?.toString().trim();
+        if (photo != null && photo.isNotEmpty) photoUrls.add(photo);
+      }
+      batch.delete(doc.reference);
+      ops++;
+      if (ops >= 450) {
+        await batch.commit();
+        batch = firestore.batch();
+        ops = 0;
+      }
+    }
+
+    if (ops > 0) await batch.commit();
+    return photoUrls;
+  }
 }

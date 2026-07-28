@@ -425,6 +425,48 @@ class CashbackRepository {
       }).toList();
     });
   }
+
+  /// Remove cashbacks e resgates do cliente. Retorna URLs de comprovantes no Storage.
+  Future<List<String>> deleteAllByCustomerId(String customerId) async {
+    final imageUrls = <String>[];
+    final cashbackSnapshot = await cashbackCollection
+        .where('customerId', isEqualTo: customerId)
+        .get();
+    final usedSnapshot = await usedCashbackCollection
+        .where('customerId', isEqualTo: customerId)
+        .get();
+
+    var batch = firestore.batch();
+    var ops = 0;
+
+    Future<void> flushIfNeeded({bool force = false}) async {
+      if (ops == 0) return;
+      if (!force && ops < 450) return;
+      await batch.commit();
+      batch = firestore.batch();
+      ops = 0;
+    }
+
+    for (final doc in cashbackSnapshot.docs) {
+      final data = doc.data();
+      if (data is Map<String, dynamic>) {
+        final image = data['imagem']?.toString().trim();
+        if (image != null && image.isNotEmpty) imageUrls.add(image);
+      }
+      batch.delete(doc.reference);
+      ops++;
+      await flushIfNeeded();
+    }
+
+    for (final doc in usedSnapshot.docs) {
+      batch.delete(doc.reference);
+      ops++;
+      await flushIfNeeded();
+    }
+
+    await flushIfNeeded(force: true);
+    return imageUrls;
+  }
 }
 
 class DateFormatHelper {
