@@ -1,14 +1,13 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
-import 'package:path/path.dart';
 
 class SelfieController extends GetxController {
   SelfieController({
@@ -20,10 +19,11 @@ class SelfieController extends GetxController {
   final CustomerRepository customerRepository;
 
   CameraController? cameraController;
-  RxBool isCameraInitialized = false.obs;
-  List<CameraDescription>? cameras;
-  RxDouble cameraAspectRatio = 1.0.obs;
-  RxBool isFrontCamera = true.obs;
+  final isCameraInitialized = false.obs;
+  final cameraError = RxnString();
+  List<CameraDescription> cameras = [];
+  final cameraAspectRatio = 1.0.obs;
+  final isFrontCamera = true.obs;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   late CameraDescription selectedCamera;
@@ -35,44 +35,72 @@ class SelfieController extends GetxController {
   }
 
   Future<void> initializeCamera() async {
+    cameraError.value = null;
+    isCameraInitialized.value = false;
+
     try {
       cameras = await availableCameras();
 
-      if (cameras!.isNotEmpty) {
-        selectedCamera = cameras!.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.front,
-        );
-        cameraController =
-            CameraController(selectedCamera, ResolutionPreset.high);
-
-        await cameraController!.initialize();
-        cameraAspectRatio.value = cameraController!.value.aspectRatio;
-        isCameraInitialized.value = true;
+      if (cameras.isEmpty) {
+        cameraError.value =
+            'Nenhuma câmera encontrada neste dispositivo.';
+        return;
       }
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível acessar a câmera.',
-        snackPosition: SnackPosition.BOTTOM,
+
+      selectedCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
       );
+      isFrontCamera.value =
+          selectedCamera.lensDirection == CameraLensDirection.front;
+
+      // medium é mais estável na web; high segue ok no mobile.
+      final preset =
+          kIsWeb ? ResolutionPreset.medium : ResolutionPreset.high;
+
+      cameraController = CameraController(
+        selectedCamera,
+        preset,
+        enableAudio: false,
+      );
+
+      await cameraController!.initialize();
+      cameraAspectRatio.value = cameraController!.value.aspectRatio;
+      isCameraInitialized.value = true;
+    } catch (e) {
+      cameraError.value =
+          'Não foi possível acessar a câmera. Verifique a permissão do navegador ou do dispositivo.';
+      isCameraInitialized.value = false;
     }
   }
 
   Future<void> switchCamera() async {
-    if (cameraController != null) {
-      await cameraController!.dispose();
-    }
+    if (cameras.length < 2) return;
+
+    isCameraInitialized.value = false;
+    await cameraController?.dispose();
+    cameraController = null;
 
     final newCameraLens = isFrontCamera.value
         ? CameraLensDirection.back
         : CameraLensDirection.front;
 
-    selectedCamera =
-        cameras!.firstWhere((camera) => camera.lensDirection == newCameraLens);
+    selectedCamera = cameras.firstWhere(
+      (camera) => camera.lensDirection == newCameraLens,
+      orElse: () => cameras.first,
+    );
 
-    cameraController = CameraController(selectedCamera, ResolutionPreset.high);
+    final preset =
+        kIsWeb ? ResolutionPreset.medium : ResolutionPreset.high;
+
+    cameraController = CameraController(
+      selectedCamera,
+      preset,
+      enableAudio: false,
+    );
     await cameraController!.initialize();
 
+    cameraAspectRatio.value = cameraController!.value.aspectRatio;
     isCameraInitialized.value = true;
     isFrontCamera.value = !isFrontCamera.value;
   }
@@ -88,35 +116,70 @@ class SelfieController extends GetxController {
         barrierDismissible: false,
       );
 
-      final image = await cameraController!.takePicture();
-      final downloadUrl = await _uploadImageToFirebase(image.path);
       final uid = authController.user.value?.uid;
       if (uid == null) {
         throw Exception('Usuário não autenticado.');
       }
 
-      await customerRepository.updatePhotoURL(uid, downloadUrl);
-      await authController.getCustomerData(uid);
+      final image = await cameraController!.takePicture();
+      final bytes = await image.readAsBytes();
+      final downloadUrl = await _uploadImageToFirebase(uid, bytes);
 
-      Get.back();
-      Get.snackbar('Sucesso', 'Dados salvos com sucesso!');
+      await customerRepository.updatePhotoURL(uid, downloadUrl);
+      authController.setProfilePhoto(bytes: bytes, photoURL: downloadUrl);
+
+      if (Get.isDialogOpen ?? false) Get.back();
       Get.offAllNamed(AppRoutes.HOME);
     } catch (e) {
       if (Get.isDialogOpen ?? false) Get.back();
-      Get.snackbar(
-        'Erro',
-        'Erro ao tirar a foto: $e',
-        snackPosition: SnackPosition.BOTTOM,
+      Get.dialog(
+        Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Erro ao salvar selfie',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Tente novamente. Se estiver na web, permita o acesso à câmera.\n\nDetalhe: $e',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Get.back(),
+                    child: const Text('Entendi'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
   }
 
-  Future<String> _uploadImageToFirebase(String imagePath) async {
-    final file = File(imagePath);
-    final fileName = basename(imagePath);
-    final ref = _storage.ref().child('selfie/$fileName');
+  /// Path fixo por usuário + putData (web e mobile).
+  Future<String> _uploadImageToFirebase(String uid, Uint8List bytes) async {
+    final ref = _storage.ref(AuthController.selfieStoragePath(uid));
 
-    await ref.putFile(file);
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
     return ref.getDownloadURL();
   }
 

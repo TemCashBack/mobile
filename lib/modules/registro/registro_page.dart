@@ -95,6 +95,14 @@ class RegistroPage extends GetView<RegistroController> {
             ),
             const SizedBox(height: AppSpacing.sm),
             TextField(
+              controller: controller.complementoController,
+              decoration: const InputDecoration(
+                labelText: 'Complemento',
+                hintText: 'Apto, bloco, sala (opcional)',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
               controller: controller.bairroController,
               decoration: const InputDecoration(labelText: 'Bairro'),
             ),

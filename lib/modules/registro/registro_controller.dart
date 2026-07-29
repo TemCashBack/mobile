@@ -26,6 +26,7 @@ class RegistroController extends GetxController {
   final cidadeController = TextEditingController();
   final estadoController = TextEditingController();
   final numeroController = TextEditingController();
+  final complementoController = TextEditingController();
   final bairroController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -117,6 +118,7 @@ class RegistroController extends GetxController {
         } else {
           ruaController.text = data['logradouro'] ?? '';
           numeroController.text = data['numero'] ?? '';
+          complementoController.text = data['complemento'] ?? '';
           cidadeController.text = data['localidade'] ?? '';
           estadoController.text = data['uf'] ?? '';
           bairroController.text = data['bairro'] ?? '';
@@ -351,6 +353,9 @@ class RegistroController extends GetxController {
           cep: cepController.text,
           rua: ruaController.text,
           n: numeroController.text,
+          complemento: complementoController.text.trim().isEmpty
+              ? null
+              : complementoController.text.trim(),
           bairro: bairroController.text,
           cidade: cidadeController.text,
           estado: estadoController.text,
@@ -358,9 +363,10 @@ class RegistroController extends GetxController {
 
       await customerRepository.registerCustomer(customerModel);
 
-      Get.back();
-      Get.snackbar('Sucesso', 'Dados salvos com sucesso!');
-      Get.toNamed(AppRoutes.SELFIE);
+      if (Get.isDialogOpen ?? false) Get.back();
+      // Evita Get.snackbar logo após fechar dialog (falha de Overlay na web e no mobile).
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      Get.offNamed(AppRoutes.SELFIE);
     } on FirebaseAuthException catch (e) {
       String message = '';
       if (e.code == 'email-already-in-use') {
@@ -389,6 +395,7 @@ class RegistroController extends GetxController {
     cidadeController.dispose();
     estadoController.dispose();
     numeroController.dispose();
+    complementoController.dispose();
     bairroController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();

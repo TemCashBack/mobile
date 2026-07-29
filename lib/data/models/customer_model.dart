@@ -4,6 +4,7 @@ class CustomerModel {
   String? cep;
   String? rua;
   String? n;
+  String? complemento;
   String? bairro;
   String? cidade;
   String? estado;
@@ -16,6 +17,7 @@ class CustomerModel {
     this.cep,
     this.rua,
     this.n,
+    this.complemento,
     this.bairro,
     this.cidade,
     this.estado,
@@ -30,6 +32,7 @@ class CustomerModel {
       cep: json['cep']?.toString(),
       rua: json['rua']?.toString(),
       n: json['numero']?.toString() ?? json['n']?.toString(),
+      complemento: json['complemento']?.toString(),
       bairro: json['bairro']?.toString(),
       cidade: json['cidade']?.toString(),
       estado: json['estado']?.toString(),
@@ -47,6 +50,7 @@ class CustomerModel {
       'cep': cep,
       'rua': rua,
       'numero': n,
+      'complemento': complemento,
       'bairro': bairro,
       'cidade': cidade,
       'estado': estado,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,6 +20,9 @@ class AuthController extends GetxController {
     required this.cashbackRepository,
   });
 
+  static const _webGoogleClientId =
+      '941351203236-0mfvcaocokufmi37gm8hn9gtch5tka9n.apps.googleusercontent.com';
+
   final FirebaseMessagingController firebaseMessagingController =
       Get.find<FirebaseMessagingController>();
 
@@ -31,8 +35,13 @@ class AuthController extends GetxController {
   final isAuthReady = false.obs;
   final isDeletingAccount = false.obs;
 
+  /// Bytes da selfie em memória — evita CORS/Image.network na web.
+  final profilePhotoBytes = Rxn<Uint8List>();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb ? _webGoogleClientId : null,
+  );
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   var customerData = Rxn<CustomerModel>();
@@ -52,6 +61,8 @@ class AuthController extends GetxController {
     return current.providerData.any((p) => p.providerId == 'google.com');
   }
 
+  static String selfieStoragePath(String uid) => 'selfie/$uid.jpg';
+
   @override
   void onInit() {
     super.onInit();
@@ -66,6 +77,7 @@ class AuthController extends GetxController {
       await updateFCMToken(firebaseUser);
     } else {
       customerData.value = null;
+      profilePhotoBytes.value = null;
       customerController.customerId.value = '';
     }
 
@@ -120,12 +132,59 @@ class AuthController extends GetxController {
         customerData.value = CustomerModel.fromJson(
             customerDoc.data() as Map<String, dynamic>);
         customerController.customerId.value = customerData.value!.uid ?? uid;
+        await loadProfilePhoto(
+          uid,
+          photoURL: customerData.value?.photoURL,
+        );
       } else {
         customerData.value = null;
+        profilePhotoBytes.value = null;
         customerController.customerId.value = uid;
       }
     } catch (e) {
       Get.snackbar('Erro', 'Não foi possível carregar seus dados.');
+    }
+  }
+
+  /// Atualiza selfie localmente (bytes + URL no modelo).
+  void setProfilePhoto({
+    required Uint8List bytes,
+    required String photoURL,
+  }) {
+    profilePhotoBytes.value = bytes;
+    final current = customerData.value;
+    if (current != null) {
+      current.photoURL = photoURL;
+      customerData.refresh();
+    }
+  }
+
+  /// Carrega a selfie do Storage pelo path fixo ou pela URL salva.
+  Future<void> loadProfilePhoto(String uid, {String? photoURL}) async {
+    try {
+      final byPath =
+          await _storage.ref(selfieStoragePath(uid)).getData(5 << 20);
+      if (byPath != null && byPath.isNotEmpty) {
+        profilePhotoBytes.value = byPath;
+        return;
+      }
+    } catch (_) {
+      // Path ainda não existe (selfie antiga com outro nome).
+    }
+
+    final url = photoURL?.trim();
+    if (url == null || url.isEmpty) {
+      return;
+    }
+
+    try {
+      final byUrl = await _storage.refFromURL(url).getData(5 << 20);
+      if (byUrl != null && byUrl.isNotEmpty) {
+        profilePhotoBytes.value = byUrl;
+        return;
+      }
+    } catch (_) {
+      // Drawer ainda pode exibir via Image.network(photoURL).
     }
   }
 
@@ -148,6 +207,7 @@ class AuthController extends GetxController {
 
   Future<void> signOut() async {
     _lastTargetRoute = null;
+    profilePhotoBytes.value = null;
     await _auth.signOut();
     await _googleSignIn.signOut();
   }

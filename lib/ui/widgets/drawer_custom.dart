@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -14,121 +15,135 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final customer = authController.customerData.value;
-    final displayName = (customer?.nomeCompleto != null &&
-            customer!.nomeCompleto!.trim().isNotEmpty)
-        ? customer.nomeCompleto!.trim()
-        : 'Usuário Tem Cashback';
-    final photoUrl = customer?.photoURL;
-    final hasPhoto = photoUrl != null && photoUrl.trim().isNotEmpty;
-
     return Drawer(
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.header,
-                  primaryThemeColor.shade900,
+      child: Obx(() {
+        final customer = authController.customerData.value;
+        final displayName = (customer?.nomeCompleto != null &&
+                customer!.nomeCompleto!.trim().isNotEmpty)
+            ? customer.nomeCompleto!.trim()
+            : 'Usuário Tem Cashback';
+        final photoBytes = authController.profilePhotoBytes.value;
+        final photoUrl = customer?.photoURL?.trim();
+
+        return Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.header,
+                    primaryThemeColor.shade900,
+                  ],
+                ),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: _DrawerAvatar(
+                      photoBytes: photoBytes,
+                      photoUrl: photoUrl,
+                      fallback: _avatarFallback(),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Seu cashback, suas lojas',
+                          style: TextStyle(
+                            color: secondaryThemeColor.shade200,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: hasPhoto
-                      ? Image.network(
-                          photoUrl,
-                          height: 56,
-                          width: 56,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _avatarFallback(),
-                        )
-                      : _avatarFallback(),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Seu cashback, suas lojas',
-                        style: TextStyle(
-                          color: secondaryThemeColor.shade200,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  _DrawerItem(
+                    leading: Icon(
+                      Icons.receipt_long_outlined,
+                      color: primaryThemeColor.shade700,
+                      size: 20,
+                    ),
+                    label: 'Extrato',
+                    onTap: () => Get.offAndToNamed(AppRoutes.HOME),
                   ),
-                ),
-              ],
+                  _DrawerItem(
+                    leading: FaIcon(
+                      FontAwesomeIcons.building,
+                      color: primaryThemeColor.shade700,
+                      size: 20,
+                    ),
+                    label: 'Nossos parceiros',
+                    onTap: () => Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS),
+                  ),
+                  const Divider(height: 24, indent: 20, endIndent: 20),
+                  _DrawerItem(
+                    leading: FaIcon(
+                      FontAwesomeIcons.doorOpen,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                    label: 'Sair',
+                    onTap: authController.signOut,
+                    isDestructive: true,
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                _DrawerItem(
-                  leading: Icon(
-                    Icons.receipt_long_outlined,
-                    color: primaryThemeColor.shade700,
-                    size: 20,
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Center(
+                  child: TextButton(
+                    onPressed: () => _confirmDeleteAccount(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor:
+                          AppColors.textSecondary.withValues(alpha: 0.7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    child: const Text(
+                      'Excluir conta',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ),
-                  label: 'Extrato',
-                  onTap: () => Get.offAndToNamed(AppRoutes.HOME),
                 ),
-                _DrawerItem(
-                  leading: FaIcon(
-                    FontAwesomeIcons.building,
-                    color: primaryThemeColor.shade700,
-                    size: 20,
-                  ),
-                  label: 'Nossos parceiros',
-                  onTap: () => Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS),
-                ),
-                const Divider(height: 24, indent: 20, endIndent: 20),
-                _DrawerItem(
-                  leading: FaIcon(
-                    FontAwesomeIcons.trashCan,
-                    color: AppColors.error,
-                    size: 20,
-                  ),
-                  label: 'Excluir conta',
-                  onTap: () => _confirmDeleteAccount(context),
-                  isDestructive: true,
-                ),
-                _DrawerItem(
-                  leading: FaIcon(
-                    FontAwesomeIcons.doorOpen,
-                    color: AppColors.error,
-                    size: 20,
-                  ),
-                  label: 'Sair',
-                  onTap: authController.signOut,
-                  isDestructive: true,
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
@@ -355,6 +370,61 @@ class CustomDrawer extends StatelessWidget {
       width: 56,
       fit: BoxFit.cover,
     );
+  }
+}
+
+class _DrawerAvatar extends StatelessWidget {
+  const _DrawerAvatar({
+    required this.photoBytes,
+    required this.photoUrl,
+    required this.fallback,
+  });
+
+  final Uint8List? photoBytes;
+  final String? photoUrl;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    if (photoBytes != null && photoBytes!.isNotEmpty) {
+      return Image.memory(
+        photoBytes!,
+        height: 56,
+        width: 56,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    }
+
+    final url = photoUrl?.trim();
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        height: 56,
+        width: 56,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            height: 56,
+            width: 56,
+            child: Center(
+              child: SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: secondaryThemeColor.shade200,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return fallback;
   }
 }
 

@@ -53,7 +53,9 @@ class CustomerRepository {
     final customerSnapshot =
         await customerCollection.where('uid', isEqualTo: uid).get();
 
-    if (customerSnapshot.docs.isEmpty) return;
+    if (customerSnapshot.docs.isEmpty) {
+      throw StateError('Cliente não encontrado para atualizar a selfie.');
+    }
 
     await customerSnapshot.docs.first.reference.update({'photoURL': photoURL});
   }
