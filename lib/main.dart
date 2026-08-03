@@ -1,12 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/customer_controller.dart';
 import 'package:mobile/controllers/firebase_in_app_message_controller.dart';
 import 'package:mobile/controllers/firebase_message_controller.dart';
+import 'package:mobile/core/firebase/firebase_app_check_bootstrap.dart';
 import 'package:mobile/initial_binding.dart';
 import 'package:mobile/modules/splash_screen/splash_screen_page.dart';
 import 'package:mobile/routes/app_pages.dart';
@@ -32,8 +33,7 @@ void main() async {
         measurementId: "G-L29TEDX8QD",
       ),
     );
-  } else if (Platform.isIOS) {
-    // iOS sem depender de Xcode para incluir o plist no bundle
+  } else if (defaultTargetPlatform == TargetPlatform.iOS) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: "AIzaSyAz4vRRzwYlrFr9MB28Z4xhx9KQk548m1M",
@@ -44,9 +44,10 @@ void main() async {
       ),
     );
   } else {
-    // Android/macOS: usa arquivos nativos (google-services.json / GoogleService-Info.plist)
     await Firebase.initializeApp();
   }
+
+  await FirebaseAppCheckBootstrap.activate();
 
   Get.put(FirebaseMessagingController());
   Get.put(FirebaseInAppMessagingController());

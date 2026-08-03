@@ -1,5 +1,5 @@
-import 'dart:io' show Platform;
-
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 
 class SocialLauncher {
@@ -10,7 +10,9 @@ class SocialLauncher {
     final slug = _facebookPageSlug(value);
     final candidates = <Uri>[];
 
-    if (Platform.isAndroid && slug != null) {
+    final isAndroid =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    if (isAndroid && slug != null) {
       candidates.addAll([
         Uri.parse(
           'intent://www.facebook.com/$slug#Intent;'

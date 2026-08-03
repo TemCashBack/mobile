@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:mobile/data/models/cashback_model.dart';
 import 'package:mobile/data/models/company_model.dart';
+import 'package:mobile/data/models/used_cashback_model.dart';
 import 'package:mobile/modules/home/home_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
@@ -112,11 +113,66 @@ class HomePage extends GetView<HomeController> {
                   itemCount: joinedData.length,
                   itemBuilder: (context, index) {
                     final item = joinedData[index];
-                    final cashbackModel = CashbackModel.fromJson(
-                      item['cashback'] as Map<String, dynamic>,
-                    );
+                    final type = item['type']?.toString() ?? 'ganho';
                     final companyModel = CompanyModel.fromJson(
                       controller.parseCompanyMap(item['company']),
+                    );
+                    final storeName = companyModel.nomeFantasia.trim().isEmpty
+                        ? 'Estabelecimento'
+                        : companyModel.nomeFantasia;
+
+                    if (type == 'resgate') {
+                      final used = UsedCashbackModel.fromJson(
+                        Map<String, dynamic>.from(
+                          item['usedCashback'] as Map? ?? {},
+                        ),
+                      );
+                      final date =
+                          controller.formatTimestamp(used.dateTime);
+                      final valor = controller
+                          .formatTransactionValue(used.valorUtilizado);
+                      return Card(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                AppColors.error.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.payments_outlined,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            storeName,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Resgate: R\$ $valor'),
+                                const SizedBox(height: 4),
+                                Text(
+                                  date,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          trailing: AppStatusChip(
+                            label: used.status,
+                            approved: used.status == UsedCashbackStatus.confirmado,
+                          ),
+                        ),
+                      );
+                    }
+
+                    final cashbackModel = CashbackModel.fromJson(
+                      Map<String, dynamic>.from(
+                        item['cashback'] as Map? ?? {},
+                      ),
                     );
                     final date =
                         controller.formatTimestamp(cashbackModel.dateTime);
@@ -138,7 +194,7 @@ class HomePage extends GetView<HomeController> {
                           ),
                         ),
                         title: Text(
-                          companyModel.nomeFantasia,
+                          storeName,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         subtitle: Padding(

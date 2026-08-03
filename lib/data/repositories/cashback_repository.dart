@@ -391,36 +391,83 @@ class CashbackRepository {
   }
 
   Stream<List<Map<String, dynamic>>> getLast10Document(String customerId) {
+    return getUnifiedExtrato(customerId);
+  }
+
+  /// Extrato unificado: ganhos (cashback) + resgates (usedCashback).
+  Stream<List<Map<String, dynamic>>> getUnifiedExtrato(String customerId) {
     final cashbackStream = cashbackCollection
         .where('customerId', isEqualTo: customerId)
         .orderBy('dateTime', descending: true)
-        .limit(10)
+        .limit(20)
         .snapshots();
 
-    return cashbackStream.asyncExpand((cashbackSnapshot) async* {
-      final companiesId = cashbackSnapshot.docs
-          .map((cashback) => cashback['companyId'])
-          .toSet();
-
-      if (companiesId.isEmpty) {
-        yield [];
-        return;
-      }
-
-      final companiesSnapshot = await companiesCollection
-          .where(FieldPath.documentId, whereIn: companiesId.toList())
+    return cashbackStream.asyncMap((cashbackSnapshot) async {
+      final usedSnapshot = await usedCashbackCollection
+          .where('customerId', isEqualTo: customerId)
+          .orderBy('dateTime', descending: true)
+          .limit(20)
           .get();
 
-      final companiesMap = {
-        for (final company in companiesSnapshot.docs)
-          company.id: company.data()
-      };
+      final items = <Map<String, dynamic>>[];
 
-      yield cashbackSnapshot.docs.map((cashback) {
-        final companyId = cashback['companyId'];
+      for (final doc in cashbackSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        items.add({
+          'type': 'ganho',
+          'dateTime': data['dateTime'],
+          'cashback': data,
+          'companyId': data['companyId'],
+        });
+      }
+
+      for (final doc in usedSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        items.add({
+          'type': 'resgate',
+          'dateTime': data['dateTime'],
+          'usedCashback': data,
+          'companyId': data['companyId'],
+        });
+      }
+
+      items.sort((a, b) {
+        final aDt = a['dateTime'];
+        final bDt = b['dateTime'];
+        final aMs = aDt is Timestamp ? aDt.millisecondsSinceEpoch : 0;
+        final bMs = bDt is Timestamp ? bDt.millisecondsSinceEpoch : 0;
+        return bMs.compareTo(aMs);
+      });
+
+      final limited = items.take(20).toList();
+      final companiesId = limited
+          .map((e) => e['companyId']?.toString())
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+
+      final companiesMap = <String, dynamic>{};
+      if (companiesId.isNotEmpty) {
+        for (var i = 0; i < companiesId.length; i += 10) {
+          final chunk = companiesId.sublist(
+            i,
+            i + 10 > companiesId.length ? companiesId.length : i + 10,
+          );
+          final companiesSnapshot = await companiesCollection
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+          for (final company in companiesSnapshot.docs) {
+            companiesMap[company.id] = company.data();
+          }
+        }
+      }
+
+      return limited.map((item) {
+        final companyId = item['companyId']?.toString();
         return {
-          'cashback': cashback.data(),
-          'company': companiesMap[companyId],
+          ...item,
+          'company': companyId == null ? null : companiesMap[companyId],
         };
       }).toList();
     });

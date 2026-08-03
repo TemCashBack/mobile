@@ -8,7 +8,10 @@ class GeolocationModel {
 
   factory GeolocationModel.fromJson(Map<String, dynamic> json) {
     return GeolocationModel(
-        accuracy: json['accuracy'], lng: json['lng'], lat: json['lat']);
+      accuracy: (json['accuracy'] as num?)?.toInt() ?? 0,
+      lng: (json['lng'] as num?)?.toDouble() ?? 0,
+      lat: (json['lat'] as num?)?.toDouble() ?? 0,
+    );
   }
 
   Map<String, dynamic> toJson() {

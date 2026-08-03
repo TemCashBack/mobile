@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile/core/constants/firestore_collections.dart';
 import 'package:mobile/data/models/company_model.dart';
@@ -12,13 +10,17 @@ class CompanyRepository {
         FirebaseFirestore.instance.collection(FirestoreCollections.companies);
   }
 
-  Stream<QuerySnapshot> getAllCompanies() {
-    return companies.snapshots(includeMetadataChanges: true);
+  /// Lista limitada no servidor (evita baixar a collection inteira).
+  Stream<QuerySnapshot> getAllCompanies({int limit = 100}) {
+    return companies
+        .limit(limit)
+        .snapshots(includeMetadataChanges: true);
   }
 
-  Stream<QuerySnapshot> getPhysicalCompanies() {
+  Stream<QuerySnapshot> getPhysicalCompanies({int limit = 100}) {
     return companies
         .where('isOnline', isEqualTo: false)
+        .limit(limit)
         .snapshots(includeMetadataChanges: true);
   }
 
@@ -26,18 +28,19 @@ class CompanyRepository {
     if (term.isEmpty) {
       return [];
     }
-    // Realiza a consulta no Firestore usando `isGreaterThanOrEqualTo` e `isLessThanOrEqualTo`
     final snapshot = await companies
         .where('nomeFantasia', isGreaterThanOrEqualTo: term)
-        .where('nomeFantasia',
-            isLessThanOrEqualTo:
-                '$term\uf8ff') // Garante a busca com correspondência parcial
+        .where('nomeFantasia', isLessThanOrEqualTo: '$term\uf8ff')
+        .limit(20)
         .get();
 
-    // Extrai e retorna as sugestões dos documentos encontrados
-    return snapshot.docs.map((e) {
-      var a = jsonEncode(e.data());
-      return CompanyModel.fromJson(jsonDecode(a));
-    }).toList();
+    return snapshot.docs
+        .map((e) {
+          final map = CompanyModel.mapFromFirestore(e.data());
+          if (!CompanyModel.isVisibleFromJson(map)) return null;
+          return CompanyModel.fromFirestore(e.data(), documentId: e.id);
+        })
+        .whereType<CompanyModel>()
+        .toList();
   }
 }

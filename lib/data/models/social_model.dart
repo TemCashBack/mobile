@@ -12,10 +12,11 @@ class SocialModel {
 
   factory SocialModel.fromJson(Map<String, dynamic> json) {
     return SocialModel(
-        whatsapp: json['whatsapp'],
-        facebook: json['facebook'],
-        linkedin: json['linkedin'],
-        instagram: json['instagram']);
+      whatsapp: json['whatsapp']?.toString() ?? '',
+      facebook: json['facebook']?.toString() ?? '',
+      linkedin: json['linkedin']?.toString() ?? '',
+      instagram: json['instagram']?.toString() ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {

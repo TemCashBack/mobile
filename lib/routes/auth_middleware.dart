@@ -10,6 +10,15 @@ class AuthMiddleware extends GetMiddleware {
     if (auth.user.value == null) {
       return const RouteSettings(name: AppRoutes.BOASVINDAS);
     }
+
+    // Exige selfie/perfil completo antes das rotas protegidas.
+    if (route != AppRoutes.SELFIE) {
+      final customer = auth.customerData.value;
+      if (customer != null && !customer.hasPhoto) {
+        return const RouteSettings(name: AppRoutes.SELFIE);
+      }
+    }
+
     return null;
   }
 }

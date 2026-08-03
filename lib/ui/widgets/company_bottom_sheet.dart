@@ -69,7 +69,8 @@ class CompanyBottomSheet {
     CompanyModel companyModel,
     Position? currentLocation,
   ) {
-    if (currentLocation == null) {
+    // Loja online não exige GPS; física sem localização bloqueia a compra.
+    if (!companyModel.isOnline && currentLocation == null) {
       showModalBottomSheet(
         context: context,
         backgroundColor: Colors.transparent,
@@ -88,7 +89,7 @@ class CompanyBottomSheet {
         child: _CompanySheetContent(
           company: companyModel,
           onInformarCompra: () =>
-              _calcDistance(id, companyModel, currentLocation),
+              _onInformarCompra(id, companyModel, currentLocation),
           onCall: (telefone) => launchUrl(Uri.parse('tel://$telefone')),
           onWhatsApp: launchWhatsApp,
         ),
@@ -101,11 +102,25 @@ class CompanyBottomSheet {
     Get.toNamed(AppRoutes.CASHBACK);
   }
 
-  Future<void> _calcDistance(
+  /// RISCO CONHECIDO: a validação de distância (~15m) é client-side e
+  /// pode ser bypassada. Mitigação completa exige Cloud Function/Rules.
+  Future<void> _onInformarCompra(
     String id,
     CompanyModel modelCompany,
-    Position currentLocation,
+    Position? currentLocation,
   ) async {
+    if (modelCompany.isOnline) {
+      _goToCashback(id);
+      return;
+    }
+
+    if (currentLocation == null) {
+      await showAlert(
+        'Não foi possível obter sua localização. Ative o GPS e tente novamente.',
+      );
+      return;
+    }
+
     distance = Geolocator.distanceBetween(
       currentLocation.latitude,
       currentLocation.longitude,

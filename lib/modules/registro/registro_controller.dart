@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/core/firebase/firebase_callable_service.dart';
 import 'package:mobile/data/models/customer_model.dart';
 import 'package:mobile/data/repositories/customer_repository.dart';
 import 'package:mobile/routes/app_routes.dart';
@@ -169,7 +170,12 @@ class RegistroController extends GetxController {
       return true;
     }
 
-    return _existsInFirebaseAuth(normalized);
+    try {
+      return await FirebaseCallableService().checkEmailExists(normalized);
+    } catch (_) {
+      // Fallback se a Function ainda não estiver deployada.
+      return _existsInFirebaseAuth(normalized);
+    }
   }
 
   /// Verifica no Auth tentando criar a conta. Se o e-mail já existir,

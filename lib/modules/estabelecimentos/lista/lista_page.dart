@@ -47,7 +47,10 @@ class ListaPage extends GetView<ListaController> {
                 }
 
                 return Obx(() {
-                  var empresas = snapshot.data!.docs;
+                  var empresas = snapshot.data!.docs.where((element) {
+                    final map = CompanyModel.mapFromFirestore(element.data());
+                    return CompanyModel.isVisibleFromJson(map);
+                  }).toList();
 
                   if (controller.term.value.isNotEmpty) {
                     empresas = empresas.where((element) {
@@ -97,10 +100,10 @@ class ListaPage extends GetView<ListaController> {
                         const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final item = empresas[index];
-                      final json = jsonEncode(item.data());
-                      final docMap =
-                          jsonDecode(json) as Map<String, dynamic>;
-                      final company = CompanyModel.fromJson(docMap);
+                      final company = CompanyModel.fromFirestore(
+                        item.data(),
+                        documentId: item.id,
+                      );
 
                       return _CompanyListTile(
                         company: company,
