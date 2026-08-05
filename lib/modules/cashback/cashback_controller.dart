@@ -164,7 +164,7 @@ class CashbackController extends GetxController {
         usingCashback ? 0.0 : valorCompra.value * (5 / 100);
     cashback.value = earnedCashback;
 
-    final downloadUrl = await _uploadImageToFirebase();
+    final downloadUrl = await _uploadImageToFirebase(customerId);
     final dateTime = DateTime.now();
     final onlyDate = DateFormat('yyyy-MM-dd').format(dateTime);
 
@@ -196,22 +196,34 @@ class CashbackController extends GetxController {
       );
     }
 
-    isLoading.value = false;
     resetValues();
     return compraId;
   }
 
-  Future<String> _uploadImageToFirebase() async {
+  Future<String> _uploadImageToFirebase(String customerId) async {
     final picked = _pickedImage;
     final bytes = imageBytes.value;
     if (picked == null || bytes == null) {
       throw Exception('Nenhuma imagem selecionada');
     }
 
-    final fileName =
+    final originalName =
         basename(picked.name.isNotEmpty ? picked.name : 'comprovante.jpg');
+    final safeName = originalName.toLowerCase().endsWith('.jpg') ||
+            originalName.toLowerCase().endsWith('.jpeg') ||
+            originalName.toLowerCase().endsWith('.png') ||
+            originalName.toLowerCase().endsWith('.webp')
+        ? originalName
+        : '$originalName.jpg';
+    final fileName =
+        '${customerId}_${DateTime.now().millisecondsSinceEpoch}_$safeName';
     final ref = _storage.ref().child('comprovante/$fileName');
-    await ref.putData(bytes);
+
+    // Storage rules exigem contentType image/* — sem metadata o upload é negado.
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
     return ref.getDownloadURL();
   }
 
@@ -235,11 +247,28 @@ class CashbackController extends GetxController {
     }
   }
 
-  Future<void> pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: kIsWeb ? ImageSource.gallery : ImageSource.camera,
-      imageQuality: 100,
-    );
+  Future<void> pickImage({ImageSource? preferred}) async {
+    final picker = ImagePicker();
+    final primary = preferred ??
+        (kIsWeb ? ImageSource.gallery : ImageSource.camera);
+
+    Future<XFile?> tryPick(ImageSource source) async {
+      try {
+        return await picker.pickImage(source: source, imageQuality: 100);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    var pickedFile = await tryPick(primary);
+
+    // Se a câmera falhar/indisponível, cai para a galeria.
+    if (pickedFile == null &&
+        !kIsWeb &&
+        primary == ImageSource.camera) {
+      pickedFile = await tryPick(ImageSource.gallery);
+    }
+
     if (pickedFile == null) return;
 
     _pickedImage = pickedFile;

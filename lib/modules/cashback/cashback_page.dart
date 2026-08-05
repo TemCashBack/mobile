@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile/modules/cashback/cashback_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
@@ -141,15 +142,31 @@ class CashbackPage extends GetView<CashbackController> {
                 );
               }),
               const SizedBox(height: AppSpacing.md),
-              ElevatedButton.icon(
-                onPressed: controller.pickImage,
-                icon: Icon(
-                  kIsWeb
-                      ? Icons.photo_library_outlined
-                      : Icons.photo_camera_outlined,
+              if (kIsWeb)
+                ElevatedButton.icon(
+                  onPressed: () => controller.pickImage(
+                    preferred: ImageSource.gallery,
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Escolher foto'),
+                )
+              else ...[
+                ElevatedButton.icon(
+                  onPressed: () => controller.pickImage(
+                    preferred: ImageSource.camera,
+                  ),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: const Text('Tirar foto'),
                 ),
-                label: Text(kIsWeb ? 'Escolher foto' : 'Tirar foto'),
-              ),
+                const SizedBox(height: AppSpacing.sm),
+                OutlinedButton.icon(
+                  onPressed: () => controller.pickImage(
+                    preferred: ImageSource.gallery,
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Escolher da galeria'),
+                ),
+              ],
             ],
           ),
         );
@@ -280,31 +297,48 @@ class CashbackPage extends GetView<CashbackController> {
     }
   }
 
-  void _onStepContinue() {
+  Future<void> _onStepContinue() async {
     if (controller.currentStep.value == 0) {
       controller.onValorCompraChanged('');
       if (controller.valorCompra.value <= 0) {
-        Get.snackbar('Erro', 'Insira um valor válido para continuar.');
+        _showError('Insira um valor válido para continuar.');
         return;
       }
     } else if (controller.currentStep.value == 1) {
       if (controller.imageBytes.value == null) {
-        Get.snackbar('Erro', 'Selecione uma foto do comprovante.');
+        _showError('Selecione uma foto do comprovante.');
         return;
       }
     }
 
     if (controller.currentStep.value == 3) {
+      if (controller.isLoading.value) return;
       controller.isLoading.value = true;
-      controller.saveCashBack().then((_) {
+      try {
+        await controller.saveCashBack();
         Get.offAllNamed(AppRoutes.HOME);
-      }).catchError((Object error) {
-        controller.isLoading.value = false;
-        Get.snackbar('Erro', 'Não foi possível finalizar a compra.');
-      });
+      } catch (error) {
+        debugPrint('Erro ao finalizar cashback: $error');
+        _showError('Não foi possível finalizar a compra. Tente novamente.');
+      } finally {
+        if (Get.isRegistered<CashbackController>()) {
+          controller.isLoading.value = false;
+        }
+      }
     } else {
       controller.nextStep();
     }
+  }
+
+  void _showError(String message) {
+    final context = Get.context;
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    }
+    Get.snackbar('Erro', message);
   }
 }
 
