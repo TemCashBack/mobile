@@ -98,10 +98,7 @@ class RegistroController extends GetxController {
   Future<void> fetchAddressByCep() async {
     final cep = cepController.text;
     if (validateCep(cep) != null) {
-      Get.snackbar('Erro', 'CEP inválido.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.error,
-          colorText: Colors.white);
+      _showErrorDialog(title: 'Erro', message: 'CEP inválido.');
       return;
     }
 
@@ -112,10 +109,7 @@ class RegistroController extends GetxController {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['erro'] == true) {
-          Get.snackbar('Erro', 'CEP não encontrado.',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.orange,
-              colorText: Colors.white);
+          _showErrorDialog(title: 'Erro', message: 'CEP não encontrado.');
         } else {
           ruaController.text = data['logradouro'] ?? '';
           numeroController.text = data['numero'] ?? '';
@@ -128,10 +122,10 @@ class RegistroController extends GetxController {
         throw Exception('Erro ao buscar o CEP');
       }
     } catch (e) {
-      Get.snackbar('Erro', 'Não foi possível buscar o endereço.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.error,
-          colorText: Colors.white);
+      _showErrorDialog(
+        title: 'Erro',
+        message: 'Não foi possível buscar o endereço.',
+      );
     }
   }
 
@@ -166,14 +160,18 @@ class RegistroController extends GetxController {
   Future<bool> isEmailAlreadyRegistered(String email) async {
     final normalized = email.trim().toLowerCase();
 
-    if (await customerRepository.existsByEmail(normalized)) {
-      return true;
-    }
+    // No cadastro o usuário ainda não está autenticado — a leitura em
+    // customers pode falhar por rules; não bloqueia a verificação.
+    try {
+      if (await customerRepository.existsByEmail(normalized)) {
+        return true;
+      }
+    } catch (_) {}
 
     try {
       return await FirebaseCallableService().checkEmailExists(normalized);
     } catch (_) {
-      // Fallback se a Function ainda não estiver deployada.
+      // Fallback se a Function falhar (rede / App Check / etc.).
       return _existsInFirebaseAuth(normalized);
     }
   }
@@ -249,10 +247,25 @@ class RegistroController extends GetxController {
     }
   }
 
+  /// Fecha dialog/loading sem passar por Get.back() (que tenta limpar
+  /// snackbar e pode estourar LateInitializationError / No Overlay).
+  void _closeDialog() {
+    final ctx = Get.overlayContext ?? Get.context;
+    if (ctx == null) return;
+    final navigator = Navigator.of(ctx, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+  }
+
   void _showErrorDialog({
     required String title,
     required String message,
   }) {
+    if (Get.isDialogOpen ?? false) {
+      _closeDialog();
+    }
+
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(
@@ -309,7 +322,7 @@ class RegistroController extends GetxController {
                     backgroundColor: primaryThemeColor,
                     foregroundColor: Colors.white,
                   ),
-                  onPressed: () => Get.back(),
+                  onPressed: _closeDialog,
                   child: const Text('Entendi'),
                 ),
               ),
@@ -369,8 +382,7 @@ class RegistroController extends GetxController {
 
       await customerRepository.registerCustomer(customerModel);
 
-      if (Get.isDialogOpen ?? false) Get.back();
-      // Evita Get.snackbar logo após fechar dialog (falha de Overlay na web e no mobile).
+      if (Get.isDialogOpen ?? false) _closeDialog();
       await Future<void>.delayed(const Duration(milliseconds: 50));
       Get.offNamed(AppRoutes.SELFIE);
     } on FirebaseAuthException catch (e) {
@@ -384,11 +396,11 @@ class RegistroController extends GetxController {
       } else {
         message = 'Erro ao cadastrar: ${e.message}';
       }
-      Get.back();
-      Get.defaultDialog(title: 'Erro', middleText: message);
+      if (Get.isDialogOpen ?? false) _closeDialog();
+      _showErrorDialog(title: 'Erro', message: message);
     } catch (e) {
-      Get.back();
-      Get.defaultDialog(title: 'Erro', middleText: '$e');
+      if (Get.isDialogOpen ?? false) _closeDialog();
+      _showErrorDialog(title: 'Erro', message: '$e');
     }
   }
 

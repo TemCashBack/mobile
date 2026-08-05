@@ -5,41 +5,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function companyDoc(companyId) {
-      return get(/databases/$(database)/documents/companies/$(companyId)).data;
-    }
-
-    // Lojista = auth.uid vinculado à empresa (campos comuns no painel).
-    function isCompanyOwner(companyId) {
-      return isSignedIn()
-        && companyId is string
-        && companyId.size() > 0
-        && (
-          companyDoc(companyId).uid == request.auth.uid
-          || companyDoc(companyId).ownerUid == request.auth.uid
-          || companyDoc(companyId).userId == request.auth.uid
-        );
+    // Painel lojista: sem RBAC — usuário autenticado acessa os dados do app.
+    match /users/{docId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
     }
 
     match /customers/{docId} {
-      allow read: if isSignedIn()
-        && resource.data.uid == request.auth.uid;
+      allow read: if isSignedIn();
       allow create: if isSignedIn()
         && request.resource.data.uid == request.auth.uid;
       allow update: if isSignedIn()
-        && resource.data.uid == request.auth.uid
-        && request.resource.data.uid == resource.data.uid;
+        && (
+          resource.data.uid == request.auth.uid
+          || request.resource.data.uid == resource.data.uid
+        );
       allow delete: if isSignedIn()
         && resource.data.uid == request.auth.uid;
     }
 
     match /cashback/{docId} {
-      // Cliente vê as próprias; lojista vê as da sua loja.
-      allow read: if isSignedIn()
-        && (
-          resource.data.customerId == request.auth.uid
-          || isCompanyOwner(resource.data.companyId)
-        );
+      allow read: if isSignedIn();
 
       allow create: if isSignedIn()
         && request.resource.data.customerId == request.auth.uid
@@ -54,10 +40,9 @@ service cloud.firestore {
           && request.resource.data.customerId == resource.data.customerId
           && request.resource.data.companyId == resource.data.companyId
         )
-        // Lojista: aprova/rejeita compras da própria loja.
+        // Lojista autenticado: aprova/rejeita compra.
         || (
-          isCompanyOwner(resource.data.companyId)
-          && request.resource.data.customerId == resource.data.customerId
+          request.resource.data.customerId == resource.data.customerId
           && request.resource.data.companyId == resource.data.companyId
         )
       );
@@ -67,33 +52,19 @@ service cloud.firestore {
     }
 
     match /usedCashback/{docId} {
-      allow read: if isSignedIn()
-        && (
-          resource.data.customerId == request.auth.uid
-          || isCompanyOwner(resource.data.companyId)
-        );
+      allow read: if isSignedIn();
       allow create: if isSignedIn()
         && request.resource.data.customerId == request.auth.uid
         && request.resource.data.status == 'reservado';
-      allow update: if isSignedIn()
-        && (
-          resource.data.customerId == request.auth.uid
-          || isCompanyOwner(resource.data.companyId)
-        );
+      allow update: if isSignedIn();
       allow delete: if isSignedIn()
         && resource.data.customerId == request.auth.uid;
     }
 
     match /companies/{docId} {
       allow read: if true;
-      // Lojista atualiza a própria empresa; criação livre autenticada (painel).
       allow create: if isSignedIn();
-      allow update: if isSignedIn()
-        && (
-          resource.data.uid == request.auth.uid
-          || resource.data.ownerUid == request.auth.uid
-          || resource.data.userId == request.auth.uid
-        );
+      allow update: if isSignedIn();
       allow delete: if false;
     }
 

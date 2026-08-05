@@ -1,8 +1,11 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
 class FirebaseCallableService {
+  static const String _region = 'southamerica-east1';
+
   FirebaseCallableService({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
+      : _functions =
+            functions ?? FirebaseFunctions.instanceFor(region: _region);
 
   final FirebaseFunctions _functions;
 
