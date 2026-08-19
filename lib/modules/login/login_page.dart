@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:mobile/modules/login/login_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
-import 'package:mobile/ui/theme/colors.dart';
+import 'package:mobile/ui/widgets/app_logo.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class LoginPage extends GetView<LoginController> {
@@ -25,16 +25,22 @@ class LoginPage extends GetView<LoginController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset(
-                    'lib/ui/assets/logo.png',
-                    height: 64,
+                  Center(
+                    child: AppLogo(
+                      height: 64,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     'Bem-vindo de volta',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: secondaryThemeColor.shade200,
+                    style: const TextStyle(
+                      color: AppColors.onHeader,
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.2,
@@ -45,7 +51,7 @@ class LoginPage extends GetView<LoginController> {
                     'Entre com seu e-mail e senha para continuar',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.55),
+                      color: AppColors.onHeader.withValues(alpha: 0.65),
                       fontSize: 14,
                       height: 1.4,
                     ),
@@ -54,8 +60,11 @@ class LoginPage extends GetView<LoginController> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColors.surfaceElevated,
                       borderRadius: BorderRadius.circular(AppRadius.xl),
+                      border: Border.all(
+                        color: AppColors.divider.withValues(alpha: 0.2),
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.25),
@@ -130,19 +139,13 @@ class LoginPage extends GetView<LoginController> {
                       Text(
                         'Ainda não tem conta?',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
+                          color: AppColors.onHeader.withValues(alpha: 0.65),
                           fontSize: 13,
                         ),
                       ),
                       TextButton(
                         onPressed: () => Get.toNamed(AppRoutes.REGISTRO),
-                        child: Text(
-                          'Criar conta',
-                          style: TextStyle(
-                            color: secondaryThemeColor.shade300,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: const Text('Criar conta'),
                       ),
                     ],
                   ),

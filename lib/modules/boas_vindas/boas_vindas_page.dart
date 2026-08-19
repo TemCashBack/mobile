@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
-import 'package:mobile/ui/theme/colors.dart';
+import 'package:mobile/ui/widgets/app_logo.dart';
 import 'package:mobile/ui/widgets/buttons/link_button.dart';
 import 'package:mobile/ui/widgets/buttons/login_button.dart';
 import 'package:mobile/ui/widgets/buttons/register_button.dart';
@@ -32,9 +32,13 @@ class BoasVindasPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'lib/ui/assets/logo.png',
+                    AppLogo(
                       width: logoWidth,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
@@ -45,7 +49,7 @@ class BoasVindasPage extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: secondaryThemeColor,
+                          color: AppColors.accent,
                           fontSize: sloganFontSize,
                           fontWeight: FontWeight.w500,
                           height: 1.3,
@@ -65,7 +69,7 @@ class BoasVindasPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Divider(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: AppColors.onHeader.withValues(alpha: 0.2),
                               thickness: 1,
                             ),
                           ),
@@ -74,14 +78,14 @@ class BoasVindasPage extends StatelessWidget {
                             child: Text(
                               'ou',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.45),
+                                color: AppColors.onHeader.withValues(alpha: 0.55),
                                 fontSize: 13,
                               ),
                             ),
                           ),
                           Expanded(
                             child: Divider(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: AppColors.onHeader.withValues(alpha: 0.2),
                               thickness: 1,
                             ),
                           ),
@@ -97,7 +101,7 @@ class BoasVindasPage extends StatelessWidget {
                       'Ao entrar, você concorda com nosso termo de uso e privacidade.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: AppColors.onHeader.withValues(alpha: 0.55),
                         fontSize: 12,
                         height: 1.45,
                       ),

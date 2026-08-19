@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/widgets/app_logo.dart';
 
 class AppLogoAppBar extends StatelessWidget implements PreferredSizeWidget {
   const AppLogoAppBar({
@@ -23,10 +25,12 @@ class AppLogoAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
+      backgroundColor: AppColors.logoBackground,
+      foregroundColor: AppColors.onHeader,
       leading: leading,
-      title: Image.asset(
-        'lib/ui/assets/logo.png',
+      title: const AppLogo(
         height: 36,
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
       actions: actions,
     );

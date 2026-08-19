@@ -12,6 +12,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mobile/controllers/location_controller.dart';
 import 'package:mobile/data/models/company_model.dart';
 import 'package:mobile/data/repositories/company_repository.dart';
+import 'package:mobile/ui/theme/app_styles.dart';
+import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
@@ -120,8 +122,8 @@ class _MapaPageState extends State<MapaPage> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppColors.header,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     width: double.infinity,
                     height: double.infinity,
@@ -130,12 +132,21 @@ class _MapaPageState extends State<MapaPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.store, color: Colors.white, size: 30),
+                          Icon(
+                            company.isOnline
+                                ? Icons.language_rounded
+                                : Icons.store,
+                            color: AppColors.accent,
+                            size: 30,
+                          ),
                           const SizedBox(width: 8.0),
                           Flexible(
                             child: Text(
                               company.nomeFantasia,
-                              style: const TextStyle(color: Colors.white),
+                              style: const TextStyle(
+                                color: AppColors.onHeader,
+                                fontWeight: FontWeight.w600,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -174,7 +185,7 @@ class _MapaPageState extends State<MapaPage> {
     return Scaffold(
       primary: false,
       body: StreamBuilder<QuerySnapshot>(
-        stream: companiesRepository.getPhysicalCompanies(),
+        stream: companiesRepository.getAllCompanies(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -213,13 +224,21 @@ class _MapaPageState extends State<MapaPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.location_off, size: 64, color: Colors.grey),
+                    const Icon(
+                      Icons.location_off,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(height: 16),
-                    const Text('Permissão de localização necessária'),
+                    const Text(
+                      'Permissão de localização necessária',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
                     const SizedBox(height: 8),
                     const Text(
                       'Este app precisa de acesso à sua localização para funcionar',
                       textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
@@ -238,11 +257,21 @@ class _MapaPageState extends State<MapaPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.gps_off, size: 64, color: Colors.grey),
+                    const Icon(
+                      Icons.gps_off,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(height: 16),
-                    const Text('Não foi possível obter sua localização'),
+                    const Text(
+                      'Não foi possível obter sua localização',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Verifique se o GPS está ativado'),
+                    const Text(
+                      'Verifique se o GPS está ativado',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () async {
@@ -298,26 +327,51 @@ class _MapaPageState extends State<MapaPage> {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: Container(
-                      padding: const EdgeInsets.all(5),
-                      color: Colors.black,
+                      padding: const EdgeInsets.all(8),
+                      color: AppColors.header,
                       child: TypeAheadField<CompanyModel>(
                         builder: (context, controller, focusNode) {
                           return TextField(
-                            cursorColor: Colors.grey,
+                            cursorColor: primaryThemeColor,
                             controller: controller,
                             focusNode: focusNode,
                             obscureText: false,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.black, width: 1),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                                borderSide: BorderSide(
+                                  color: primaryThemeColor,
+                                  width: 1.5,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                                borderSide: BorderSide(
+                                  color: AppColors.divider.withValues(alpha: 0.3),
+                                ),
                               ),
                               filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(),
+                              fillColor: AppColors.surfaceElevated,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                              ),
                               hintText: 'Pesquise um estabelecimento',
+                              hintStyle: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                             ),
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
                           );
                         },
                         suggestionsCallback: (pattern) async {
@@ -334,12 +388,23 @@ class _MapaPageState extends State<MapaPage> {
                         },
                         itemBuilder: (context, suggestion) {
                           return ListTile(
-                            leading: const FaIcon(
+                            leading: FaIcon(
                               FontAwesomeIcons.building,
-                              color: Colors.black,
+                              color: primaryThemeColor.shade700,
                             ),
-                            title: Text(suggestion.nomeFantasia),
-                            subtitle: Text(suggestion.razaoSocial),
+                            title: Text(
+                              suggestion.nomeFantasia,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              suggestion.razaoSocial,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           );
                         },
                         onSelected: gotoCompany,

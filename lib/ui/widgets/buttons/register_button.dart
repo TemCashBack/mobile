@@ -14,8 +14,8 @@ class RegisterButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: secondaryThemeColor,
-          side: BorderSide(color: secondaryThemeColor.shade400, width: 1.5),
+          foregroundColor: primaryThemeColor,
+          side: BorderSide(color: primaryThemeColor.withValues(alpha: 0.8), width: 1.5),
           minimumSize: const Size(260, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

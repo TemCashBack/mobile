@@ -12,6 +12,7 @@ import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/buttons/informar_compra_button.dart';
 import 'package:mobile/ui/widgets/buttons/phone_button.dart';
+import 'package:mobile/ui/widgets/company_photo.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 import 'package:mobile/utils/social_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -369,30 +370,20 @@ class _CompanyAvatar extends StatelessWidget {
       height: 72,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.divider),
-        color: AppColors.background,
+        color: AppColors.logoBackground,
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.2),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: foto.isNotEmpty
-          ? Image.network(
-              foto,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'lib/ui/assets/logo-round.png',
-                fit: BoxFit.cover,
-              ),
-            )
-          : Image.asset(
-              'lib/ui/assets/logo-round.png',
-              fit: BoxFit.cover,
-            ),
+      child: CompanyPhoto(foto: foto),
     );
   }
 }
@@ -404,12 +395,15 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOnline ? primaryThemeColor : secondaryThemeColor;
+    final color = isOnline ? AppColors.accent : AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -417,13 +411,13 @@ class _StatusChip extends StatelessWidget {
           Icon(
             isOnline ? Icons.language_rounded : Icons.storefront_rounded,
             size: 14,
-            color: color.shade800,
+            color: isOnline ? AppColors.primaryDark : AppColors.textSecondary,
           ),
           const SizedBox(width: 6),
           Text(
             isOnline ? 'Serviço on-line' : 'Loja física',
             style: TextStyle(
-              color: color.shade800,
+              color: isOnline ? AppColors.primaryDark : AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -445,8 +439,11 @@ class _AddressCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: AppColors.divider.withValues(alpha: 0.2),
+          ),
         ),
         child: Row(
           children: [
@@ -473,8 +470,11 @@ class _AddressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,7 +627,7 @@ class _MapAppsRow extends StatelessWidget {
           runSpacing: AppSpacing.sm,
           children: availableMaps.map((map) {
             return Material(
-              color: AppColors.background,
+              color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(AppRadius.md),
               child: InkWell(
                 borderRadius: BorderRadius.circular(AppRadius.md),

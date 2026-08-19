@@ -7,7 +7,6 @@ import 'package:mobile/data/models/used_cashback_model.dart';
 import 'package:mobile/modules/home/home_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
-import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/app_app_bar.dart';
 import 'package:mobile/ui/widgets/app_cashback_card.dart';
 import 'package:mobile/ui/widgets/app_section_title.dart';
@@ -24,7 +23,7 @@ class HomePage extends GetView<HomeController> {
       appBar: AppLogoAppBar(actions: [AppLogoAppBar.menuButton(context)]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.offAndToNamed(AppRoutes.ESTABELECIMENTOS),
-        icon: FaIcon(FontAwesomeIcons.plus, color: primaryThemeColor, size: 16),
+        icon: const FaIcon(FontAwesomeIcons.plus, size: 16),
         label: const Text('Informar compras'),
       ),
       body: Column(
@@ -50,21 +49,22 @@ class HomePage extends GetView<HomeController> {
                         controller.formatMaskedValue(snapshot.data ?? 0);
                     return RichText(
                       text: TextSpan(
-                        style: const TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.onHeader),
                         children: [
-                          const TextSpan(
+                          TextSpan(
                             text: 'R\$ ',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
+                              color: AppColors.onHeader.withValues(alpha: 0.8),
                             ),
                           ),
                           TextSpan(
                             text: totalCashback,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w800,
-                              color: primaryThemeColor.shade800,
+                              color: AppColors.accent,
                             ),
                           ),
                         ],
@@ -86,7 +86,7 @@ class HomePage extends GetView<HomeController> {
                     return Text(
                       'Utilizado: R\$ $used',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textPrimary.withValues(alpha: 0.7),
+                            color: AppColors.onHeader.withValues(alpha: 0.65),
                             fontWeight: FontWeight.w500,
                           ),
                     );
@@ -186,10 +186,10 @@ class HomePage extends GetView<HomeController> {
                         contentPadding: const EdgeInsets.all(16),
                         leading: CircleAvatar(
                           backgroundColor:
-                              primaryThemeColor.withValues(alpha: 0.1),
+                              AppColors.accent.withValues(alpha: 0.12),
                           child: Icon(
                             Icons.shopping_bag_outlined,
-                            color: primaryThemeColor.shade700,
+                            color: AppColors.primaryDark,
                             size: 20,
                           ),
                         ),

@@ -52,12 +52,14 @@ class AppTheme {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: AppColors.surfaceElevated,
         elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          side: const BorderSide(color: AppColors.divider),
+          side: BorderSide(
+            color: AppColors.divider.withValues(alpha: 0.25),
+          ),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -67,7 +69,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.surfaceElevated,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -82,7 +84,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: primaryThemeColor, width: 1.5),
         ),
-        labelStyle: TextStyle(color: secondaryThemeColor.shade700),
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
         hintStyle: const TextStyle(color: AppColors.textSecondary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -102,13 +104,13 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: secondaryThemeColor.shade700,
+          foregroundColor: primaryThemeColor.shade700,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: secondaryThemeColor,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: primaryThemeColor,
+        foregroundColor: Colors.white,
         elevation: 4,
         extendedPadding: const EdgeInsets.symmetric(horizontal: 20),
         shape: RoundedRectangleBorder(
@@ -116,9 +118,9 @@ class AppTheme {
         ),
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: secondaryThemeColor,
-        unselectedLabelColor: Colors.white70,
-        indicatorColor: secondaryThemeColor,
+        labelColor: primaryThemeColor,
+        unselectedLabelColor: AppColors.onHeader.withValues(alpha: 0.55),
+        indicatorColor: primaryThemeColor,
         indicatorSize: TabBarIndicatorSize.label,
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         unselectedLabelStyle: const TextStyle(fontSize: 13),
@@ -132,7 +134,7 @@ class AppTheme {
           ),
         ),
       ),
-      iconTheme: IconThemeData(color: primaryThemeColor.shade700),
+      iconTheme: const IconThemeData(color: AppColors.textSecondary),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

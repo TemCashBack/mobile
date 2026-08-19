@@ -10,25 +10,24 @@ class InformarCompraButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-          backgroundColor: primaryThemeColor, minimumSize: Size.fromHeight(40)),
+        backgroundColor: primaryThemeColor,
+        foregroundColor: Colors.white,
+        minimumSize: const Size.fromHeight(40),
+      ),
       onPressed: onPressed,
-      child: Padding(
+      child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             FaIcon(
               FontAwesomeIcons.cartShopping,
-              color: Colors.white,
               size: 18,
             ),
-            SizedBox(
-              width: 10.0,
-            ),
+            SizedBox(width: 10.0),
             Text(
-              "Informar compra",
+              'Informar compra',
               maxLines: 1,
-              style: TextStyle(color: Colors.white),
             ),
           ],
         ),

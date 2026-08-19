@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:mobile/controllers/auth_controller.dart';
 import 'package:mobile/routes/app_routes.dart';
+import 'package:mobile/ui/widgets/company_photo.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 
@@ -36,7 +37,7 @@ class CustomDrawer extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     AppColors.header,
-                    primaryThemeColor.shade900,
+                    AppColors.headerElevated,
                   ],
                 ),
               ),
@@ -69,7 +70,7 @@ class CustomDrawer extends StatelessWidget {
                         Text(
                           'Seu cashback, suas lojas',
                           style: TextStyle(
-                            color: secondaryThemeColor.shade200,
+                            color: AppColors.accent,
                             fontSize: 12,
                           ),
                         ),
@@ -364,11 +365,10 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _avatarFallback() {
-    return Image.asset(
-      'lib/ui/assets/logo-round.png',
+    return const SizedBox(
       height: 56,
       width: 56,
-      fit: BoxFit.cover,
+      child: AppBrandIcon(),
     );
   }
 }
@@ -415,7 +415,7 @@ class _DrawerAvatar extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: secondaryThemeColor.shade200,
+                  color: AppColors.accent,
                 ),
               ),
             ),

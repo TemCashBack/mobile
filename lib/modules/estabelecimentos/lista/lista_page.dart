@@ -13,6 +13,7 @@ import 'package:mobile/ui/theme/app_styles.dart';
 import 'package:mobile/ui/theme/colors.dart';
 import 'package:mobile/ui/widgets/app_section_title.dart';
 import 'package:mobile/ui/widgets/company_bottom_sheet.dart';
+import 'package:mobile/ui/widgets/company_photo.dart';
 import 'package:mobile/ui/widgets/progress_indicator_custom.dart';
 
 class ListaPage extends GetView<ListaController> {
@@ -236,7 +237,7 @@ class _CategoryFilterBar extends StatelessWidget {
           child: Text(
             'Categorias',
             style: TextStyle(
-              color: Colors.white70,
+              color: AppColors.onHeader,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
@@ -289,7 +290,9 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? secondaryThemeColor : Colors.white.withValues(alpha: 0.1),
+      color: selected
+          ? AppColors.accent.withValues(alpha: 0.22)
+          : AppColors.headerElevated.withValues(alpha: 0.55),
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: InkWell(
         onTap: onTap,
@@ -300,14 +303,14 @@ class _CategoryChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
               color: selected
-                  ? secondaryThemeColor.shade300
-                  : Colors.white.withValues(alpha: 0.18),
+                  ? AppColors.accent.withValues(alpha: 0.6)
+                  : AppColors.onHeader.withValues(alpha: 0.18),
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? AppColors.textPrimary : Colors.white,
+              color: selected ? AppColors.accent : AppColors.onHeader,
               fontSize: 13,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
@@ -337,7 +340,7 @@ class _CompanyListTile extends StatelessWidget {
         : '${company.municipio}/${company.uf}';
 
     return Material(
-      color: AppColors.surface,
+      color: AppColors.surfaceElevated,
       borderRadius: BorderRadius.circular(AppRadius.lg),
       elevation: 0,
       child: InkWell(
@@ -347,7 +350,9 @@ class _CompanyListTile extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.divider),
+            border: Border.all(
+              color: AppColors.divider.withValues(alpha: 0.25),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -408,8 +413,8 @@ class _CompanyListTile extends StatelessWidget {
                               : Icons.storefront_rounded,
                           label: company.isOnline ? 'On-line' : 'Física',
                           color: company.isOnline
-                              ? primaryThemeColor
-                              : secondaryThemeColor,
+                              ? AppColors.accent
+                              : AppColors.textSecondary,
                         ),
                         if (company.categoria.isNotEmpty)
                           _MetaChip(
@@ -425,7 +430,7 @@ class _CompanyListTile extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primaryThemeColor.shade600,
+                color: AppColors.textSecondary,
               ),
             ],
           ),
@@ -447,23 +452,13 @@ class _CompanyThumb extends StatelessWidget {
       height: 64,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        color: AppColors.background,
-        border: Border.all(color: AppColors.divider),
+        color: AppColors.logoBackground,
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.2),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
-      child: foto.isNotEmpty
-          ? Image.network(
-              foto,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'lib/ui/assets/logo-round.png',
-                fit: BoxFit.cover,
-              ),
-            )
-          : Image.asset(
-              'lib/ui/assets/logo-round.png',
-              fit: BoxFit.cover,
-            ),
+      child: CompanyPhoto(foto: foto),
     );
   }
 }
@@ -477,10 +472,11 @@ class _MetaChip extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final MaterialColor color;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
+    final foreground = color == AppColors.accent ? AppColors.primaryDark : color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -490,7 +486,7 @@ class _MetaChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color.shade800),
+          Icon(icon, size: 12, color: foreground),
           const SizedBox(width: 4),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 120),
@@ -499,7 +495,7 @@ class _MetaChip extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: color.shade800,
+                color: foreground,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),

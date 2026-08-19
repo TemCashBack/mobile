@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.4+54
+version: 1.1.0+55
 
 environment:
   sdk: ^3.6.0
@@ -76,8 +76,8 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-flutter_icons:
-  image_path: "lib/ui/assets/ic_launcher.png"
+flutter_launcher_icons:
+  image_path: "lib/ui/assets/icone.png"
   android: true
   ios: true
   remove_alpha_ios: true
@@ -91,6 +91,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - lib/ui/assets/icone.png
     - lib/ui/assets/logo-round.png
     - lib/ui/assets/logo.png
     - lib/ui/assets/logo-white.png

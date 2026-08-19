@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/ui/theme/app_styles.dart';
-import 'package:mobile/ui/theme/colors.dart';
 
 class AppCashbackCard extends StatelessWidget {
   const AppCashbackCard({
@@ -16,14 +15,17 @@ class AppCashbackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.62,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
-        color: secondaryThemeColor,
+        color: AppColors.headerElevated,
         borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: AppColors.accent.withValues(alpha: 0.45),
+        ),
         boxShadow: [
           BoxShadow(
-            color: secondaryThemeColor.withValues(alpha: 0.35),
-            blurRadius: 16,
+            color: AppColors.accent.withValues(alpha: 0.12),
+            blurRadius: 20,
             offset: const Offset(0, 8),
           ),
         ],
@@ -34,8 +36,9 @@ class AppCashbackCard extends StatelessWidget {
           Text(
             'Cashback disponível',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textPrimary.withValues(alpha: 0.75),
+                  color: AppColors.onHeader.withValues(alpha: 0.75),
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
                 ),
           ),
           const SizedBox(height: 4),
@@ -62,7 +65,7 @@ class AppStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = approved ? primaryThemeColor : AppColors.error;
+    final color = approved ? AppColors.accent : AppColors.error;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -72,7 +75,7 @@ class AppStatusChip extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: approved ? primaryThemeColor.shade700 : AppColors.error,
+          color: approved ? AppColors.primaryDark : AppColors.error,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
