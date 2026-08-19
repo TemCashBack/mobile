@@ -22,6 +22,8 @@ class CompanyModel {
   int status;
   bool isOnline;
   String categoria;
+  double cashbackPercentual;
+  double limiteCompra;
 
   CompanyModel({
     required this.endereco,
@@ -43,6 +45,8 @@ class CompanyModel {
     required this.status,
     required this.categoria,
     this.isOnline = false,
+    this.cashbackPercentual = 5.0,
+    this.limiteCompra = 200.0,
   });
 
   bool get hasValidCategory => categoria.trim().isNotEmpty;
@@ -176,6 +180,8 @@ class CompanyModel {
       status: (json['status'] as num?)?.toInt() ?? 0,
       categoria: json['categoria']?.toString() ?? '',
       isOnline: json['isOnline'] == true,
+      cashbackPercentual: (json['cashbackPercentual'] as num?)?.toDouble() ?? 5.0,
+      limiteCompra: (json['limiteCompra'] as num?)?.toDouble() ?? 200.0,
     );
   }
 
@@ -200,6 +206,8 @@ class CompanyModel {
       'status': status,
       'categoria': categoria,
       'isOnline': isOnline,
+      'cashbackPercentual': cashbackPercentual,
+      'limiteCompra': limiteCompra,
     };
   }
 }

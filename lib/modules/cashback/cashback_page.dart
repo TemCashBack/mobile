@@ -69,10 +69,10 @@ class CashbackPage extends GetView<CashbackController> {
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              const Text(
-                'O valor máximo por compra é R\$ 200,00.',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
+              Obx(() => Text(
+                'O valor máximo por compra nesta loja é R\$ ${controller.limiteCompra.value.toStringAsFixed(2).replaceAll('.', ',')}.',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              )),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: controller.valorCompraController,
@@ -185,7 +185,7 @@ class CashbackPage extends GetView<CashbackController> {
               ),
               const SizedBox(height: AppSpacing.sm),
               const Text(
-                'Na mesma loja você usa 100% do saldo ganho nela. Em outras lojas, no máximo 50% de cada crédito (vitalício). O uso não pode passar do valor da compra e, se houver uso, esta compra não gera novos ganhos.',
+                'O cashback só pode ser utilizado na loja onde foi gerado. O saldo tem validade de 40 dias. O uso não pode passar do valor da compra e, se houver uso, esta compra não gera novos ganhos.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -209,18 +209,8 @@ class CashbackPage extends GetView<CashbackController> {
                 return Column(
                   children: [
                     _BalanceInfoRow(
-                      label: 'Saldo nesta loja (100%)',
-                      value: controller.saldoMesmaLoja.value,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _BalanceInfoRow(
-                      label: 'Saldo em outras lojas',
-                      value: controller.saldoParceiraBruta.value,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _BalanceInfoRow(
-                      label: 'Utilizável de outras lojas (50% vitalício)',
-                      value: controller.saldoParceiraUtilizavel.value,
+                      label: 'Saldo disponível nesta loja',
+                      value: controller.saldoLoja.value,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _BalanceInfoRow(
@@ -281,7 +271,7 @@ class CashbackPage extends GetView<CashbackController> {
                 Text(
                   using
                       ? 'Você está utilizando R\$ ${controller.utilizaValor.value.toStringAsFixed(2).replaceAll('.', ',')} de cashback nesta loja (reserva pendente de aprovação). Esta compra não gerará novos cashbacks.'
-                      : 'Sua compra será analisada pelo lojista. Após a aprovação, você receberá 5% de cashback e uma notificação no app.',
+                      : 'Sua compra será analisada pelo lojista. Após a aprovação, você receberá ${controller.cashbackPercentual.value.toStringAsFixed(0)}% de cashback (válido por 40 dias) e uma notificação no app.',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 14,

@@ -8,7 +8,6 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
-/** Verifica se o e-mail já existe no Firebase Auth (sem criar user temporário). */
 export const checkEmailExists = onCall(async (request) => {
   const email = String(request.data?.email ?? "")
     .trim()
@@ -29,7 +28,6 @@ export const checkEmailExists = onCall(async (request) => {
   }
 });
 
-/** Aprova/rejeita compra (painel do lojista daquela companyId). */
 export const reviewPurchase = onCall(async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError("unauthenticated", "Faça login.");
@@ -77,10 +75,6 @@ export const reviewPurchase = onCall(async (request) => {
   return { ok: true };
 });
 
-/**
- * Quando a compra muda para aprovada/rejeitada, confirma ou estorna o resgate.
- * Espelha confirmarResgatePorCompra / estornarResgatePorCompra do app.
- */
 export const onCashbackReviewUpdated = onDocumentUpdated(
   "cashback/{cashbackId}",
   async (event) => {
@@ -110,8 +104,6 @@ export const onCashbackReviewUpdated = onDocumentUpdated(
     }
 
     if (becameRejected || (before.aprovado !== false && after.aprovado === false && after.rejeitado === true)) {
-      // Estorno completo fica no app (transaction complexa); marca status.
-      // Preferência: admin rejeita com field rejeitado:true.
       if (after.rejeitado === true) {
         const snap = await db
           .collection("usedCashback")
@@ -120,9 +112,6 @@ export const onCashbackReviewUpdated = onDocumentUpdated(
         for (const doc of snap.docs) {
           const status = doc.get("status");
           if (status === "estornado") continue;
-          // Marca para o client/admin processar estorno atômico se necessário.
-          // Aqui confirmamos rejeição setando status estornado apenas se ainda reservado,
-          // sem restaurar saldos (resto pode ser feito por callable dedicada).
           if (status === "reservado") {
             await restoreReservation(doc.id, doc.data());
           }
@@ -131,6 +120,19 @@ export const onCashbackReviewUpdated = onDocumentUpdated(
     }
   }
 );
+
+function isExpired(data: admin.firestore.DocumentData): boolean {
+  const expiresAt = data.expiresAt as admin.firestore.Timestamp | undefined;
+  if (expiresAt) {
+    return Date.now() > expiresAt.toMillis();
+  }
+  const dateTime = data.dateTime as admin.firestore.Timestamp | undefined;
+  if (dateTime) {
+    const expiryMs = dateTime.toMillis() + 40 * 24 * 60 * 60 * 1000;
+    return Date.now() > expiryMs;
+  }
+  return false;
+}
 
 async function restoreReservation(
   usedId: string,
@@ -146,32 +148,23 @@ async function restoreReservation(
     for (const alloc of alocacoes) {
       const cashbackId = String(alloc.cashbackId ?? "");
       const valor = Number(alloc.valor ?? 0);
-      const mesmaLoja = alloc.mesmaLoja === true;
       if (!cashbackId || valor <= 0) continue;
 
       const cbRef = db.collection("cashback").doc(cashbackId);
       const cbSnap = await tx.get(cbRef);
       if (!cbSnap.exists) continue;
       const data = cbSnap.data()!;
+
+      if (isExpired(data)) continue;
+
       const cashbackValue = Number(data.cashback ?? 0);
       const restante = Number(
         data.cashbackRestante ?? (data.utilizado === true ? 0 : cashbackValue)
       );
       const restoredRemaining = Math.min(cashbackValue, restante + valor);
-      const parceiraRaw = data.parceiraRestante;
-      const currentParceira =
-        typeof parceiraRaw === "number"
-          ? parceiraRaw
-          : data.utilizado === true
-            ? 0
-            : cashbackValue * 0.5;
-      const restoredParceira = mesmaLoja
-        ? currentParceira
-        : Math.min(cashbackValue * 0.5, currentParceira + valor);
 
       tx.update(cbRef, {
         cashbackRestante: restoredRemaining,
-        parceiraRestante: restoredParceira,
         utilizado: restoredRemaining <= 0.001,
       });
     }

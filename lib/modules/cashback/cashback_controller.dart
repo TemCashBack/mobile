@@ -33,10 +33,12 @@ class CashbackController extends GetxController {
   final isLoading = false.obs;
   final isLoadingBalance = false.obs;
 
-  final saldoMesmaLoja = 0.0.obs;
-  final saldoParceiraBruta = 0.0.obs;
-  final saldoParceiraUtilizavel = 0.0.obs;
+  final saldoLoja = 0.0.obs;
   final maximoSaldo = 0.0.obs;
+
+  /// Configuração da loja atual (vinda do Firestore).
+  final cashbackPercentual = 5.0.obs;
+  final limiteCompra = 200.0.obs;
 
   late final MoneyMaskedTextController valorCompraController;
   late final MoneyMaskedTextController utilizaValorController;
@@ -70,6 +72,7 @@ class CashbackController extends GetxController {
     imageBytes.value = null;
     _pickedImage = null;
     resetValues();
+    _loadCompanyConfig();
     loadSpendAvailability();
   }
 
@@ -81,11 +84,32 @@ class CashbackController extends GetxController {
     utilizaValorController.updateValue(0);
   }
 
+  Future<void> _loadCompanyConfig() async {
+    final id = companyId.value;
+    if (id.isEmpty) return;
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('companies')
+          .doc(id)
+          .get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        cashbackPercentual.value =
+            (data['cashbackPercentual'] as num?)?.toDouble() ?? 5.0;
+        limiteCompra.value =
+            (data['limiteCompra'] as num?)?.toDouble() ?? 200.0;
+      }
+    } catch (_) {
+      // fallback para valores padrão
+    }
+  }
+
   void onValorCompraChanged(String _) {
     final inputValue = valorCompraController.numberValue;
-    if (inputValue > 200) {
-      valorCompraController.updateValue(200);
-      valorCompra.value = 200;
+    final limite = limiteCompra.value;
+    if (inputValue > limite) {
+      valorCompraController.updateValue(limite);
+      valorCompra.value = limite;
     } else {
       valorCompra.value = inputValue;
     }
@@ -116,9 +140,7 @@ class CashbackController extends GetxController {
     final customerId = customerController.customerId.value;
     final currentCompanyId = companyId.value;
     if (customerId.isEmpty || currentCompanyId.isEmpty) {
-      saldoMesmaLoja.value = 0;
-      saldoParceiraBruta.value = 0;
-      saldoParceiraUtilizavel.value = 0;
+      saldoLoja.value = 0;
       maximoSaldo.value = 0;
       return;
     }
@@ -136,9 +158,7 @@ class CashbackController extends GetxController {
   }
 
   void _applyAvailability(CashbackSpendAvailability availability) {
-    saldoMesmaLoja.value = availability.mesmaLoja;
-    saldoParceiraBruta.value = availability.parceiraBruta;
-    saldoParceiraUtilizavel.value = availability.parceiraUtilizavel;
+    saldoLoja.value = availability.saldoLoja;
     maximoSaldo.value = availability.maximoUtilizavel;
     _clampUtilizaValor();
   }
@@ -160,13 +180,15 @@ class CashbackController extends GetxController {
       throw StateError('Cashback não pode exceder o valor da compra.');
     }
 
+    final pct = cashbackPercentual.value / 100;
     final earnedCashback =
-        usingCashback ? 0.0 : valorCompra.value * (5 / 100);
+        usingCashback ? 0.0 : valorCompra.value * pct;
     cashback.value = earnedCashback;
 
     final downloadUrl = await _uploadImageToFirebase(customerId);
     final dateTime = DateTime.now();
     final onlyDate = DateFormat('yyyy-MM-dd').format(dateTime);
+    final expiresAt = dateTime.add(const Duration(days: 40));
 
     final cashbackModel = CashbackModel(
       companyId: companyId.value,
@@ -174,9 +196,9 @@ class CashbackController extends GetxController {
       valor: valorCompra.value,
       cashback: earnedCashback,
       cashbackRestante: earnedCashback,
-      parceiraRestante: earnedCashback * 0.5,
       valorUtilizado: usingCashback ? utilizaValor.value : 0,
       dateTime: Timestamp.fromDate(dateTime),
+      expiresAt: Timestamp.fromDate(expiresAt),
       date: onlyDate,
       imagem: downloadUrl,
       aprovado: false,
@@ -186,7 +208,6 @@ class CashbackController extends GetxController {
     final compraId = await cashbackRepository.save(cashbackModel);
 
     if (usingCashback) {
-      // Reserva atômica: só confirma/estorna quando o lojista aprovar/rejeitar.
       await cashbackRepository.reservarCashback(
         customerId: customerId,
         companyId: companyId.value,
@@ -219,7 +240,6 @@ class CashbackController extends GetxController {
         '${customerId}_${DateTime.now().millisecondsSinceEpoch}_$safeName';
     final ref = _storage.ref().child('comprovante/$fileName');
 
-    // Storage rules exigem contentType image/* — sem metadata o upload é negado.
     await ref.putData(
       bytes,
       SettableMetadata(contentType: 'image/jpeg'),
@@ -262,7 +282,6 @@ class CashbackController extends GetxController {
 
     var pickedFile = await tryPick(primary);
 
-    // Se a câmera falhar/indisponível, cai para a galeria.
     if (pickedFile == null &&
         !kIsWeb &&
         primary == ImageSource.camera) {

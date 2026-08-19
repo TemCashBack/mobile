@@ -31,13 +31,15 @@ class CashbackRepository {
     return utilizado ? 0.0 : cashback;
   }
 
-  double _parceiraRemainingOf(Map<String, dynamic> data) {
-    final cashback = (data['cashback'] as num?)?.toDouble() ?? 0.0;
-    final restante = _remainingOf(data);
-    final parceiraRaw = (data['parceiraRestante'] as num?)?.toDouble();
-    final parceira =
-        parceiraRaw ?? (data['utilizado'] == true ? 0.0 : cashback * 0.5);
-    return math.min(restante, parceira < 0 ? 0.0 : parceira);
+  bool _isExpired(Map<String, dynamic> data) {
+    final expiresAt = data['expiresAt'] as Timestamp?;
+    if (expiresAt == null) {
+      final dateTime = data['dateTime'] as Timestamp?;
+      if (dateTime == null) return false;
+      return DateTime.now()
+          .isAfter(dateTime.toDate().add(const Duration(days: 40)));
+    }
+    return DateTime.now().isAfter(expiresAt.toDate());
   }
 
   Stream<double> getRealTimeCashbackBalance(String customerId) {
@@ -48,7 +50,9 @@ class CashbackRepository {
         .map((snapshot) {
       double total = 0.0;
       for (final doc in snapshot.docs) {
-        total += _remainingOf(doc.data() as Map<String, dynamic>);
+        final data = doc.data() as Map<String, dynamic>;
+        if (_isExpired(data)) continue;
+        total += _remainingOf(data);
       }
       return total;
     });
@@ -77,11 +81,14 @@ class CashbackRepository {
 
     double total = 0.0;
     for (final doc in snapshot.docs) {
-      total += _remainingOf(doc.data() as Map<String, dynamic>);
+      final data = doc.data() as Map<String, dynamic>;
+      if (_isExpired(data)) continue;
+      total += _remainingOf(data);
     }
     return total;
   }
 
+  /// Retorna saldo disponível APENAS da mesma loja (não expirado).
   Future<CashbackSpendAvailability> getSpendAvailability({
     required String customerId,
     required String companyId,
@@ -89,36 +96,25 @@ class CashbackRepository {
     final snapshot = await cashbackCollection
         .where('customerId', isEqualTo: customerId)
         .where('aprovado', isEqualTo: true)
+        .where('companyId', isEqualTo: companyId)
         .get();
 
-    double mesmaLoja = 0.0;
-    double parceiraBruta = 0.0;
-    double parceiraUtilizavel = 0.0;
-
+    double saldoLoja = 0.0;
     for (final doc in snapshot.docs) {
       final data = doc.data() as Map<String, dynamic>;
+      if (_isExpired(data)) continue;
       final remaining = _remainingOf(data);
       if (remaining <= 0) continue;
-
-      final originCompanyId = data['companyId']?.toString() ?? '';
-      if (originCompanyId == companyId) {
-        mesmaLoja += remaining;
-      } else {
-        parceiraBruta += remaining;
-        parceiraUtilizavel += _parceiraRemainingOf(data);
-      }
+      saldoLoja += remaining;
     }
 
     return CashbackSpendAvailability(
-      mesmaLoja: mesmaLoja,
-      parceiraBruta: parceiraBruta,
-      parceiraUtilizavel: parceiraUtilizavel,
-      maximoUtilizavel: mesmaLoja + parceiraUtilizavel,
+      saldoLoja: saldoLoja,
+      maximoUtilizavel: saldoLoja,
     );
   }
 
-  /// Reserva saldo de forma atômica (status [UsedCashbackStatus.reservado]).
-  /// Confirme com [confirmarResgate] ou devolva com [estornarResgate].
+  /// Reserva saldo de forma atômica — apenas da mesma loja.
   Future<UsedCashbackModel> reservarCashback({
     required String customerId,
     required String companyId,
@@ -136,20 +132,15 @@ class CashbackRepository {
     final candidates = await cashbackCollection
         .where('customerId', isEqualTo: customerId)
         .where('aprovado', isEqualTo: true)
+        .where('companyId', isEqualTo: companyId)
         .get();
 
-    final sameStoreRefs = <DocumentReference>[];
-    final partnerRefs = <DocumentReference>[];
-
+    final candidateRefs = <DocumentReference>[];
     for (final doc in candidates.docs) {
       final data = doc.data() as Map<String, dynamic>;
+      if (_isExpired(data)) continue;
       if (_remainingOf(data) <= 0) continue;
-      final origin = data['companyId']?.toString() ?? '';
-      if (origin == companyId) {
-        sameStoreRefs.add(doc.reference);
-      } else if (_parceiraRemainingOf(data) > 0) {
-        partnerRefs.add(doc.reference);
-      }
+      candidateRefs.add(doc.reference);
     }
 
     final usedRef = usedCashbackCollection.doc();
@@ -157,121 +148,67 @@ class CashbackRepository {
     final date = DateFormatHelper.ymd(dateTime);
 
     return firestore.runTransaction((transaction) async {
-      final sameSnaps = <DocumentSnapshot>[];
-      final partnerSnaps = <DocumentSnapshot>[];
-
-      for (final ref in sameStoreRefs) {
-        sameSnaps.add(await transaction.get(ref));
-      }
-      for (final ref in partnerRefs) {
-        partnerSnaps.add(await transaction.get(ref));
+      final snaps = <DocumentSnapshot>[];
+      for (final ref in candidateRefs) {
+        snaps.add(await transaction.get(ref));
       }
 
-      double mesmaLoja = 0;
-      double parceiraUtilizavel = 0;
-      for (final snap in sameSnaps) {
+      double available = 0;
+      for (final snap in snaps) {
         if (!snap.exists) continue;
-        mesmaLoja += _remainingOf(snap.data() as Map<String, dynamic>);
-      }
-      for (final snap in partnerSnaps) {
-        if (!snap.exists) continue;
-        parceiraUtilizavel +=
-            _parceiraRemainingOf(snap.data() as Map<String, dynamic>);
+        final data = snap.data() as Map<String, dynamic>;
+        if (_isExpired(data)) continue;
+        available += _remainingOf(data);
       }
 
-      final maximo = mesmaLoja + parceiraUtilizavel;
-      if (valorUtilizado > maximo + 0.001) {
+      if (valorUtilizado > available + 0.001) {
         throw StateError('Valor de cashback acima do limite permitido.');
       }
 
       var remainingToSpend = valorUtilizado;
-      var usedSameStore = 0.0;
-      var usedPartner = 0.0;
       final alocacoes = <UsedCashbackAllocation>[];
 
-      void consume({
-        required List<DocumentSnapshot> snaps,
-        required double limit,
-        required bool mesmaLojaConsume,
-      }) {
-        var left = limit;
-        for (final snap in snaps) {
-          if (left <= 0.001) break;
-          if (!snap.exists) continue;
-          final data = Map<String, dynamic>.from(
-            snap.data() as Map<String, dynamic>,
-          );
-          final currentRemaining = _remainingOf(data);
-          if (currentRemaining <= 0) continue;
-
-          final available = mesmaLojaConsume
-              ? currentRemaining
-              : _parceiraRemainingOf(data);
-          if (available <= 0) continue;
-
-          final take = available < left ? available : left;
-          final newRemaining = currentRemaining - take;
-          final cashbackValue = (data['cashback'] as num?)?.toDouble() ?? 0.0;
-          final currentParceira = (data['parceiraRestante'] as num?)?.toDouble() ??
-              cashbackValue * 0.5;
-          final newParceira = mesmaLojaConsume
-              ? currentParceira
-              : math.max(0.0, currentParceira - take);
-
-          transaction.update(snap.reference, {
-            'cashbackRestante': newRemaining,
-            'parceiraRestante': newParceira,
-            'utilizado': newRemaining <= 0.001,
-          });
-
-          alocacoes.add(
-            UsedCashbackAllocation(
-              cashbackId: snap.id,
-              origemCompanyId: data['companyId']?.toString() ?? '',
-              valor: take,
-              mesmaLoja: mesmaLojaConsume,
-            ),
-          );
-
-          if (mesmaLojaConsume) {
-            usedSameStore += take;
-          } else {
-            usedPartner += take;
-          }
-          left -= take;
-        }
-        remainingToSpend -= (limit - left);
-      }
-
-      final sameLimit =
-          remainingToSpend < mesmaLoja ? remainingToSpend : mesmaLoja;
-      consume(
-        snaps: sameSnaps,
-        limit: sameLimit,
-        mesmaLojaConsume: true,
-      );
-
-      if (remainingToSpend > 0.001) {
-        final partnerLimit = remainingToSpend < parceiraUtilizavel
-            ? remainingToSpend
-            : parceiraUtilizavel;
-        consume(
-          snaps: partnerSnaps,
-          limit: partnerLimit,
-          mesmaLojaConsume: false,
+      for (final snap in snaps) {
+        if (remainingToSpend <= 0.001) break;
+        if (!snap.exists) continue;
+        final data = Map<String, dynamic>.from(
+          snap.data() as Map<String, dynamic>,
         );
+        if (_isExpired(data)) continue;
+        final currentRemaining = _remainingOf(data);
+        if (currentRemaining <= 0) continue;
+
+        final take = currentRemaining < remainingToSpend
+            ? currentRemaining
+            : remainingToSpend;
+        final newRemaining = currentRemaining - take;
+
+        transaction.update(snap.reference, {
+          'cashbackRestante': newRemaining,
+          'utilizado': newRemaining <= 0.001,
+        });
+
+        alocacoes.add(
+          UsedCashbackAllocation(
+            cashbackId: snap.id,
+            origemCompanyId: companyId,
+            valor: take,
+          ),
+        );
+
+        remainingToSpend -= take;
       }
 
       if (remainingToSpend > 0.05) {
         throw StateError('Não foi possível alocar todo o cashback solicitado.');
       }
 
+      final totalUsed = alocacoes.fold(0.0, (s, a) => s + a.valor);
+
       final model = UsedCashbackModel(
         customerId: customerId,
         companyId: companyId,
-        valorUtilizado: usedSameStore + usedPartner,
-        valorMesmaLoja: usedSameStore,
-        valorParceira: usedPartner,
+        valorUtilizado: totalUsed,
         compraValor: compraValor,
         gerouCashback: false,
         status: UsedCashbackStatus.reservado,
@@ -361,15 +298,9 @@ class CashbackRepository {
           cashbackValue,
           currentRemaining + alloc.valor,
         );
-        final currentParceira = (data['parceiraRestante'] as num?)?.toDouble() ??
-            (data['utilizado'] == true ? 0.0 : cashbackValue * 0.5);
-        final restoredParceira = alloc.mesmaLoja
-            ? currentParceira
-            : math.min(cashbackValue * 0.5, currentParceira + alloc.valor);
 
         transaction.update(snap.reference, {
           'cashbackRestante': restoredRemaining,
-          'parceiraRestante': restoredParceira,
           'utilizado': restoredRemaining <= 0.001,
         });
       }
@@ -394,7 +325,6 @@ class CashbackRepository {
     return getUnifiedExtrato(customerId);
   }
 
-  /// Extrato unificado: ganhos (cashback) + resgates (usedCashback).
   Stream<List<Map<String, dynamic>>> getUnifiedExtrato(String customerId) {
     final cashbackStream = cashbackCollection
         .where('customerId', isEqualTo: customerId)
@@ -473,7 +403,6 @@ class CashbackRepository {
     });
   }
 
-  /// Remove cashbacks e resgates do cliente. Retorna URLs de comprovantes no Storage.
   Future<List<String>> deleteAllByCustomerId(String customerId) async {
     final imageUrls = <String>[];
     final cashbackSnapshot = await cashbackCollection
