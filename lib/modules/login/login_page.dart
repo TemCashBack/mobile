@@ -28,11 +28,8 @@ class LoginPage extends GetView<LoginController> {
                   Center(
                     child: AppLogo(
                       height: 64,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      showBackground: false,
+                      padding: EdgeInsets.zero,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),

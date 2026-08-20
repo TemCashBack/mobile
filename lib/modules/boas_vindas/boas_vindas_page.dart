@@ -34,11 +34,8 @@ class BoasVindasPage extends StatelessWidget {
                   children: [
                     AppLogo(
                       width: logoWidth,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
-                      ),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      showBackground: false,
+                      padding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(

@@ -8,17 +8,30 @@ class AppLogo extends StatelessWidget {
     this.width,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     this.borderRadius = BorderRadius.zero,
+    this.showBackground = true,
   });
 
   final double? height;
   final double? width;
   final EdgeInsetsGeometry padding;
   final BorderRadius borderRadius;
+  final bool showBackground;
 
   static const _assetPath = 'lib/ui/assets/logo.png';
 
   @override
   Widget build(BuildContext context) {
+    final image = Image.asset(
+      _assetPath,
+      height: height,
+      width: width,
+      fit: BoxFit.contain,
+    );
+
+    if (!showBackground) {
+      return Padding(padding: padding, child: image);
+    }
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.logoBackground,
@@ -26,12 +39,7 @@ class AppLogo extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: Image.asset(
-          _assetPath,
-          height: height,
-          width: width,
-          fit: BoxFit.contain,
-        ),
+        child: image,
       ),
     );
   }
